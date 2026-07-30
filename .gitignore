@@ -1,0 +1,17 @@
+references/nvda-source/
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+build/
+dist/
+*.nvda-addon
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+*.wav
+*.onnx
+*.onnx.json
+models/
