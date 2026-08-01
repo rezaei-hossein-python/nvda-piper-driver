@@ -32,7 +32,7 @@ pythonSources: list[str] = ["addon/synthDrivers/nvdaPiperDriver.py"]
 i18nSources: list[str] = ["buildVars.py"]
 
 # Markdown is a build input; only generated HTML belongs in the package.
-excludedFiles: list[str] = ["doc/**/*.md"]
+excludedFiles: list[str] = ["doc/**/*.md", "**/__pycache__/**", "**/*.pyc"]
 baseLanguage: str = "en"
 markdownExtensions: list[str] = []
 brailleTables: BrailleTables = {}

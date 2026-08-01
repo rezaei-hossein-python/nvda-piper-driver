@@ -45,17 +45,19 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2D — Lifecycle and settings skeleton with mocks
 
-**Next milestone. Do not start other Phase 2 work concurrently.**
+**Complete. Phase 2E is the sole next milestone.**
 
-- **Objective:** implement serialized lifecycle/state transitions and only defensible mock voice/rate settings.
+- **Objective:** implement only initializing/ready/terminated lifecycle states, one fixed mock voice, and an in-memory rate fixture.
 - **Allowed:** controller/state/config interfaces, fake dependencies, unit tests.
 - **Forbidden:** job conversion beyond placeholders, worker process, real playback/runtime.
 - **Tests:** all transitions/invariants/termination, invalid config, voice change, main-thread call duration under mocks.
 - **Manual:** select/deselect, settings ring/dialog only if controls exist, shutdown without handles.
 - **Docs/commit:** reconcile state/schema; `Implement mocked driver lifecycle and settings`.
-- **Exit:** deterministic idempotent teardown and accessible mock settings. Stop.
+- **Exit:** deterministic idempotent teardown and mock settings-boundary tests completed without speech or runtime resources. Stop.
 
 ## Phase 2E — Speech-job conversion with mocks
+
+**Next milestone. Do not start other Phase 2 work concurrently.**
 
 - **Objective:** convert pinned NVDA sequences into immutable jobs.
 - **Allowed:** pure job/command modules and fixtures.

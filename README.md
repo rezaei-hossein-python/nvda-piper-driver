@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2C controlled availability is implemented for development testing only.** The driver remains unavailable by default and becomes selectable only when an exact process-local test marker is supplied. It provides no Piper runtime, speech functionality, or public release.
+**Phase 2D mock lifecycle and settings are implemented for development testing only.** The driver remains unavailable by default and becomes selectable only when an exact process-local test marker is supplied. Its fixed mock voice and in-memory rate setting do not affect speech. It provides no speech-job conversion, Piper runtime, speech functionality, or public release.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2C established packaging, an unavailable driver, and an explicit test-only availability gate. Phase 2D—mocked lifecycle and only defensible settings—is the sole next milestone.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2D established packaging, an unavailable-by-default driver, an explicit test-only availability gate, and a minimal mock lifecycle/settings boundary. Phase 2E—pure speech-job conversion with mocks—is the sole next milestone.
 
 ## Why this project exists
 
@@ -98,6 +98,7 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/phase-2-implementation-sequence.md`](docs/phase-2-implementation-sequence.md)
 - [`docs/build-and-package.md`](docs/build-and-package.md)
 - [`docs/mock-runtime-availability.md`](docs/mock-runtime-availability.md)
+- [`docs/mock-lifecycle-and-settings.md`](docs/mock-lifecycle-and-settings.md)
 - [`docs/research-source-register.md`](docs/research-source-register.md)
 - [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)

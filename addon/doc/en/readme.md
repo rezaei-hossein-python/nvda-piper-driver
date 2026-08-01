@@ -2,13 +2,13 @@
 
 ## Development status
 
-This development-validation package contains a minimal synthesizer-driver module with a controlled test-only availability gate. It is unavailable by default and normal users cannot enable it through add-on settings. Even in controlled test mode, it does not include a Piper runtime, voice model, speech output, settings, or model installation functionality.
+This development-validation package contains a minimal synthesizer-driver module with a controlled test-only availability gate. It is unavailable by default and normal users cannot enable it through add-on settings. In controlled test mode it exposes only a fixed `Mock Voice — No Speech` entry and an in-memory rate fixture; neither affects speech. It does not include speech-job conversion, a Piper runtime, voice model, speech output, or model installation functionality.
 
 There is no public release. This package is not intended for everyday use and does not indicate acceptance by the NVDA Add-on Store.
 
 ## Project purpose
 
-The project intends to provide offline NVDA speech using separately verified Piper-compatible neural voices. Implementation has not progressed beyond packaging, the unavailable driver boundary, and controlled discovery/lifecycle testing.
+The project intends to provide offline NVDA speech using separately verified Piper-compatible neural voices. Implementation has not progressed beyond packaging, the unavailable driver boundary, and controlled mock discovery, lifecycle, and settings testing.
 
 ## Installation status
 
@@ -22,6 +22,7 @@ This package has no speech runtime, network access, telemetry, or text logging. 
 
 - The driver is excluded from the selectable synthesizer list unless an unsupported, explicit development-test condition is supplied to the NVDA process.
 - No speech is produced.
+- The mock voice and rate setting do not affect speech.
 - No Piper runtime or voice is included.
 - There is no model installer or downloader.
 - NVDA installation, help-opening, and uninstall behavior still require controlled manual validation.

@@ -23,5 +23,6 @@ The project has not released a public version.
 - AddonTemplate-aligned metadata-only package generation, localizable manifest text, packaged English help, and focused archive validation.
 - A minimal `nvdaPiperDriver` synthesizer module that remains deliberately unavailable because `check()` returns `False`.
 - An exact, process-local, test-only availability gate for isolated discovery, construction, and termination validation.
+- A three-state mock lifecycle, one explicitly non-speaking mock voice, and a bounded in-memory rate fixture for NVDA settings-boundary validation.
 
-The driver remains unavailable in normal use and produces no speech when the development gate is enabled. No Piper runtime, worker, audio implementation, runtime binary, or voice model has been added. The package is not a public release and has not been submitted to the Add-on Store.
+The driver remains unavailable in normal use and produces no speech when the development gate is enabled. The mock settings do not affect speech. No speech-job conversion, Piper runtime, worker, audio implementation, runtime binary, or voice model has been added. The package is not a public release and has not been submitted to the Add-on Store.

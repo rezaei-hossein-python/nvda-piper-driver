@@ -29,6 +29,8 @@ On pinned/current supported NVDA: discovery, unavailable `check`, selection/dese
 
 Phase 2C adds a narrower pre-integration layer: isolated tests patch only the exact process environment marker, import the driver against one `SynthDriver` stub, simulate loader inclusion from `check()`, verify base construction/one-time termination, and pass a hostile non-inspectable speech sentinel. This does not replace real portable-NVDA discovery and selection-list validation, which remains deferred.
 
+Phase 2D extends only that isolated layer. Tests require exactly the initializing/ready/terminated states, one fixed non-speaking voice, strict in-memory rate validation, irreversible one-time base termination, failure of active settings after termination, and hostile-sentinel speech failures in ready and terminated states. The stubs do not exercise NVDA's real configuration callback, settings ring, or voice-dictionary behavior; disposable portable-NVDA validation remains pending.
+
 ### Accessibility acceptance
 
 Execute `docs/accessibility-acceptance-criteria.md` with keyboard and NVDA: focus/order/names/states, validation and recovery, manual model import, progress/cancel, first run, restart prompts, help navigation, localization, and announcement rate.

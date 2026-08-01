@@ -28,13 +28,58 @@ FORBIDDEN_IMPORT_ROOTS = {
 }
 
 
+class StubSetting:
+	def __init__(self, identifier: str, defaultValue) -> None:
+		self.id = identifier
+		self.defaultVal = defaultValue
+		self.useConfig = True
+
+
 class StubSynthDriver(ABC):
+	supportedSettings = ()
+	failTermination = False
+
+	@classmethod
+	def VoiceSetting(cls) -> StubSetting:
+		return StubSetting("voice", None)
+
+	@classmethod
+	def RateSetting(cls) -> StubSetting:
+		return StubSetting("rate", 50)
+
 	def __init__(self) -> None:
 		self.baseInitialized = True
 		self.baseTerminateCalls = 0
 
 	def terminate(self) -> None:
+		# Pinned NVDA saves advertised settings before unregistering its callback.
+		self.voice
+		self.rate
 		self.baseTerminateCalls += 1
+		if self.failTermination:
+			raise RuntimeError("inherited cleanup failed")
+
+	@property
+	def availableVoices(self):
+		if not hasattr(self, "_availableVoices"):
+			self._availableVoices = self._getAvailableVoices()
+		return self._availableVoices
+
+	@property
+	def voice(self):
+		return self._get_voice()
+
+	@voice.setter
+	def voice(self, value) -> None:
+		self._set_voice(value)
+
+	@property
+	def rate(self):
+		return self._get_rate()
+
+	@rate.setter
+	def rate(self, value) -> None:
+		self._set_rate(value)
 
 	@abstractmethod
 	def speak(self, speechSequence) -> None:
@@ -44,6 +89,11 @@ class StubSynthDriver(ABC):
 def loadDriverModule() -> types.ModuleType:
 	stubHandler = types.ModuleType("synthDriverHandler")
 	stubHandler.SynthDriver = StubSynthDriver  # type: ignore[attr-defined]
+	stubHandler.VoiceInfo = lambda identifier, displayName, language: types.SimpleNamespace(  # type: ignore[attr-defined]
+		id=identifier,
+		displayName=displayName,
+		language=language,
+	)
 	spec = importlib.util.spec_from_file_location(MODULE_NAME, DRIVER_PATH)
 	if spec is None or spec.loader is None:
 		raise AssertionError("Unable to create driver import specification")
@@ -121,7 +171,7 @@ class UnavailableDriverTests(unittest.TestCase):
 			for node in ast.walk(tree)
 			if isinstance(node, ast.ImportFrom) and node.module
 		)
-		self.assertEqual({"os", "synthDriverHandler"}, imports)
+		self.assertEqual({"collections", "enum", "os", "synthDriverHandler"}, imports)
 		self.assertTrue(imports.isdisjoint(FORBIDDEN_IMPORT_ROOTS))
 
 	def test_construction_requires_marker_and_owns_no_runtime_resources(self) -> None:
@@ -130,18 +180,73 @@ class UnavailableDriverTests(unittest.TestCase):
 				self.module.SynthDriver()
 		with self._availableEnvironment():
 			driver = self.module.SynthDriver()
+		self.assertEqual(self.module._MockLifecycleState.READY, driver._state)
 		self.assertEqual(
-			{"baseInitialized": True, "baseTerminateCalls": 0, "_isTerminated": False},
-			driver.__dict__,
+			{"_state", "_voice", "_rate", "baseInitialized", "baseTerminateCalls"},
+			set(driver.__dict__),
+		)
+
+	def test_lifecycle_has_only_three_states(self) -> None:
+		self.assertEqual(
+			{"initializing", "ready", "terminated"},
+			{state.value for state in self.module._MockLifecycleState},
 		)
 
 	def test_termination_delegates_once(self) -> None:
 		with self._availableEnvironment():
+			markerValue = os.environ[self.module._TEST_ONLY_MARKER_ENV]
 			driver = self.module.SynthDriver()
-		driver.terminate()
-		driver.terminate()
-		self.assertTrue(driver._isTerminated)
+			driver.terminate()
+			driver.terminate()
+			self.assertEqual(markerValue, os.environ[self.module._TEST_ONLY_MARKER_ENV])
+		self.assertIs(self.module._MockLifecycleState.TERMINATED, driver._state)
 		self.assertEqual(1, driver.baseTerminateCalls)
+		with self.assertRaisesRegex(RuntimeError, "terminated"):
+			_ = driver.voice
+		with self.assertRaisesRegex(RuntimeError, "terminated"):
+			driver.voice = "mockVoice"
+		with self.assertRaisesRegex(RuntimeError, "terminated"):
+			_ = driver.rate
+		with self.assertRaisesRegex(RuntimeError, "terminated"):
+			driver.rate = 50
+		self.assertIs(self.module._MockLifecycleState.TERMINATED, driver._state)
+		with self._availableEnvironment():
+			failingDriver = self.module.SynthDriver()
+			failingDriver.failTermination = True
+			with self.assertRaisesRegex(RuntimeError, "inherited cleanup failed"):
+				failingDriver.terminate()
+			failingDriver.terminate()
+		self.assertIs(self.module._MockLifecycleState.TERMINATED, failingDriver._state)
+		self.assertEqual(1, failingDriver.baseTerminateCalls)
+
+	def test_supported_settings_are_exactly_voice_and_rate(self) -> None:
+		self.assertEqual(["voice", "rate"], [setting.id for setting in self.module.SynthDriver.supportedSettings])
+
+	def test_fixed_mock_voice(self) -> None:
+		with self._availableEnvironment():
+			driver = self.module.SynthDriver()
+		self.assertEqual("mockVoice", driver.voice)
+		self.assertEqual(["mockVoice"], list(driver.availableVoices))
+		voice = driver.availableVoices["mockVoice"]
+		self.assertEqual("Mock Voice — No Speech", voice.displayName)
+		self.assertIsNone(voice.language)
+		driver.voice = "mockVoice"
+		with self.assertRaises(LookupError):
+			driver.voice = "unknown"
+
+	def test_mock_rate_validation_and_round_trip(self) -> None:
+		with self._availableEnvironment():
+			driver = self.module.SynthDriver()
+		self.assertEqual(50, driver.rate)
+		for value in (0, 37, 100):
+			driver.rate = value
+			self.assertEqual(value, driver.rate)
+		for value in (-1, 101):
+			with self.assertRaises(ValueError):
+				driver.rate = value
+		for value in (False, True, 1.0, "50", None):
+			with self.assertRaises(TypeError):
+				driver.rate = value
 
 	def test_unexpected_speak_fails_without_using_sequence(self) -> None:
 		class PrivateSpeechSequence:
@@ -157,9 +262,29 @@ class UnavailableDriverTests(unittest.TestCase):
 			def __eq__(self, other) -> bool:
 				raise AssertionError("speech sequence was compared")
 
+			def __len__(self) -> int:
+				raise AssertionError("speech sequence length was inspected")
+
+			def __contains__(self, item) -> bool:
+				raise AssertionError("speech sequence membership was inspected")
+
+			def __format__(self, formatSpec: str) -> str:
+				raise AssertionError("speech sequence was formatted")
+
+			def __copy__(self):
+				raise AssertionError("speech sequence was copied")
+
+			def __deepcopy__(self, memo):
+				raise AssertionError("speech sequence was deep-copied")
+
 		with self._availableEnvironment():
 			driver = self.module.SynthDriver()
-		with self.assertRaisesRegex(RuntimeError, "test-only NVDA Piper Driver"):
+		initialState = driver._state
+		with self.assertRaisesRegex(RuntimeError, "Phase 2D has no speech implementation"):
+			driver.speak(PrivateSpeechSequence())
+		self.assertIs(initialState, driver._state)
+		driver.terminate()
+		with self.assertRaisesRegex(RuntimeError, "terminated"):
 			driver.speak(PrivateSpeechSequence())
 
 

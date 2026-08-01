@@ -1,5 +1,7 @@
 # Proposed configuration schema
 
+> Phase 2D implements no production configuration schema. Its sole mock voice and rate value are in-memory NVDA settings-boundary fixtures, do not affect speech, and must not be confused with the proposed settings below. Project code writes no configuration; inherited NVDA persistence behavior remains pending portable-environment validation. See `mock-lifecycle-and-settings.md`.
+
 ## Principles
 
 Configuration contains preferences, never authoritative model metadata or secrets. Values are validated on read and write; invalid values fall back safely with one redacted warning. Job-relevant values are snapshotted. Schema has an integer version and transactional migrations with backup/rollback. Identifiers below are provisional.
