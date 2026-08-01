@@ -44,6 +44,24 @@ Deliverables:
 
 No production driver code should be written in this phase.
 
+## Phase 1B — Runtime, ecosystem, and Add-on Store research
+
+Deliverables:
+
+- `docs/piper-runtime-evaluation.md`;
+- `docs/nvda-neural-speech-ecosystem-review.md`;
+- `docs/addon-store-readiness.md`;
+- proposed runtime ADR in `docs/architecture-decision-runtime.md`.
+
+Exit criteria:
+
+- runtime choices are compared without invented benchmark results;
+- ecosystem strengths and failures are source-backed;
+- current Store submission/validation and native-component obligations are recorded;
+- the preferred and fallback architectures remain provisional pending Phase 3 measurements.
+
+No implementation, driver skeleton, binary, or voice model is produced in this phase.
+
 ## Phase 2 — Minimal add-on and driver skeleton
 
 Deliverables:
@@ -148,3 +166,20 @@ Deliverables:
 - installation and troubleshooting documentation;
 - signed or otherwise verifiable release assets where feasible;
 - community testing plan.
+
+## Phase 11 — Community and Add-on Store readiness
+
+Deliverables:
+
+- execute the release matrix in `docs/addon-store-readiness.md`;
+- complete third-party notices, SBOM, hashes, reproducible acquisition/build records, and security review;
+- resolve community beta findings and document support/deprecation procedures;
+- re-read and manually follow the then-current official Add-on Store submission guide.
+
+Exit criteria:
+
+- all release-blocking checklist items pass;
+- the immutable release asset and metadata pass the current automated validations;
+- first-publisher authorization and any VirusTotal review are complete.
+
+Submission does not guarantee acceptance, publication, or future compatibility.

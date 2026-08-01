@@ -47,3 +47,23 @@ AI-generated implementations can easily use outdated or invented NVDA APIs. Sour
 ### Next step
 
 Publish the foundational repository, then complete Phase 1 research without production driver code.
+
+## 2026-08-01 — Phase 1B runtime, ecosystem, and Store research
+
+### Scope and evidence
+
+Reviewed the pinned NVDA developer/add-on documentation, add-on handler/store code, speech manager, and built-in OneCore, SAPI5, and eSpeak drivers. Current online primary sources included NV Access's NVDA, AddonTemplate, addon-datastore submission/validation/review documentation, API-version metadata and Code of Conduct; current and archived Piper repositories; Sonata source/releases/issues; and Hear2Read/Store listings. Time-sensitive status was recorded with the access date and uncertain maintenance claims were left unresolved.
+
+### Provisional decision
+
+Prototype a long-running, non-networked x64 worker with persistent model loading, bounded/versioned IPC, generation IDs, immediate audio cancellation, stale-result rejection, and deterministic shutdown. Evaluate the current Piper backend in that boundary; retain a verified CLI behind the same boundary as fallback.
+
+The ADR is Proposed, not Accepted. No driver, build script, binary, model, or benchmark was created in Phase 1B.
+
+### Reasons and negative findings
+
+Process isolation best addresses native crash and NVDA Python-ABI risk. Sonata release evidence supports evaluating this approach but also documents locked worker/update recovery and voice-loss migration failures. Current Piper licensing changed from the archived MIT-labelled repository to a GPL-3.0 successor embedding eSpeak NG; every binary and model therefore needs independent provenance and redistribution review. The Store performs automated integrity, metadata, API, URL, and VirusTotal checks but explicitly does not promise a human security/UX audit.
+
+### Next gate
+
+Before accepting the runtime decision, run the cold/warm latency, cancellation, stress, resource, crash, lifecycle, clean-machine, multilingual, and Persian benchmarks listed in `docs/piper-runtime-evaluation.md`. Before any public release, complete `docs/addon-store-readiness.md`; acceptance is not guaranteed.

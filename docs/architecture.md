@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the provisional architecture. It must be revised after completing the NVDA SynthDriver research phase.
+This document describes the provisional architecture after Phase 1A/1B research. The runtime decision remains Proposed until the proof-of-concept measurements in `docs/architecture-decision-runtime.md` exist.
 
 ## Design objectives
 
@@ -50,7 +50,7 @@ Responsibilities:
 - support deterministic shutdown;
 - avoid network access.
 
-The implementation choice—embedded Python runtime, native executable, library binding, or managed worker process—remains open pending evaluation.
+Phase 1B provisionally recommends a long-running, non-networked x64 worker process with a Piper backend, generation-tagged IPC, bounded PCM chunks, explicit cancellation, and crash detection. A verified CLI behind the same worker boundary is the fallback. See `docs/piper-runtime-evaluation.md`; this is not yet an accepted implementation decision.
 
 ### 4. Audio and lifecycle controller
 
@@ -69,7 +69,11 @@ The NVDA-facing `speak` path must return promptly. Expensive model loading and i
 
 Each synthesis request should carry a generation identifier or cancellation token. When cancellation occurs, pending jobs and late results from earlier generations must be discarded.
 
-The final model will be selected after studying current built-in drivers, NVDA audio APIs, and extension points.
+The worker owns model loading and inference; the NVDA-side audio controller owns prompt interruption and discards events from stale generations. The exact audio abstraction and index-to-audio mapping still require a proof of concept against the pinned source.
+
+## Distribution boundary
+
+The add-on should initially contain no voice model. Any later downloader must require explicit consent, use HTTPS and verified metadata/checksums, and retain an offline local-file path. Every runtime and voice component needs independently recorded provenance, licence, redistribution rights, and security-update ownership. Store readiness is defined in `docs/addon-store-readiness.md` and does not imply acceptance.
 
 ## Voice discovery
 
