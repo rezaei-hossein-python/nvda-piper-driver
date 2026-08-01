@@ -27,6 +27,8 @@ Use a fake player to assert PCM format, chunk order, bounded buffers/backpressur
 
 On pinned/current supported NVDA: discovery, unavailable `check`, selection/deselection/fallback, speech, indexes, done, cancel/priority replacement, settings and voice changes, worker failures, shutdown, installed and portable configurations. Use NVDA system-test mechanisms only after verifying current documentation; manual testing remains necessary where automation is unsafe.
 
+Phase 2C adds a narrower pre-integration layer: isolated tests patch only the exact process environment marker, import the driver against one `SynthDriver` stub, simulate loader inclusion from `check()`, verify base construction/one-time termination, and pass a hostile non-inspectable speech sentinel. This does not replace real portable-NVDA discovery and selection-list validation, which remains deferred.
+
 ### Accessibility acceptance
 
 Execute `docs/accessibility-acceptance-criteria.md` with keyboard and NVDA: focus/order/names/states, validation and recovery, manual model import, progress/cancel, first run, restart prompts, help navigation, localization, and announcement rate.

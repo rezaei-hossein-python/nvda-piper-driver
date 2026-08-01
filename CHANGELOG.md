@@ -22,5 +22,6 @@ The project has not released a public version.
 - Testing, CI, accessibility acceptance, governance, support, documentation, source-register, repository-quality, and exact Phase 2 implementation plans.
 - AddonTemplate-aligned metadata-only package generation, localizable manifest text, packaged English help, and focused archive validation.
 - A minimal `nvdaPiperDriver` synthesizer module that remains deliberately unavailable because `check()` returns `False`.
+- An exact, process-local, test-only availability gate for isolated discovery, construction, and termination validation.
 
-No selectable or functional synthesizer, Piper runtime, worker, audio implementation, runtime binary, or voice model has been added. The generated development package is not a public release and has not been submitted to the Add-on Store.
+The driver remains unavailable in normal use and produces no speech when the development gate is enabled. No Piper runtime, worker, audio implementation, runtime binary, or voice model has been added. The package is not a public release and has not been submitted to the Add-on Store.

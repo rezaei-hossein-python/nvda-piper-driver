@@ -78,13 +78,13 @@ Exit criteria:
 - Phase 2 can proceed milestone by milestone without inventing architecture in code;
 - the runtime ADR remains Proposed; at Phase 1C completion, implementation had not begun.
 
-See `docs/phase-2-implementation-sequence.md`. Phases 2A and 2B are complete; the immediate next milestone is Phase 2C only.
+See `docs/phase-2-implementation-sequence.md`. Phases 2A–2C are complete; the immediate next milestone is Phase 2D only.
 
 ## Phase 2 — Minimal add-on and driver skeleton
 
 This summary is superseded for execution by the separate Phase 2A–2J stop-gated sequence. Do not combine its milestones.
 
-Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver whose verified `check()` returns false. Phase 2C may introduce controlled test-only mock discovery, but no real Piper runtime.
+Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver. Phase 2C added an exact test-only availability gate with base-only construction and idempotent termination; it is not a real Piper runtime. Phase 2D may add only mocked lifecycle and defensible settings behavior.
 
 Deliverables:
 

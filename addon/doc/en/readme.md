@@ -2,13 +2,13 @@
 
 ## Development status
 
-This development-validation package contains a minimal unavailable synthesizer-driver module. Its availability check intentionally returns false, so `NVDA Piper Driver` is not selectable. It does not include a Piper runtime, voice model, speech output, settings, or model installation functionality.
+This development-validation package contains a minimal synthesizer-driver module with a controlled test-only availability gate. It is unavailable by default and normal users cannot enable it through add-on settings. Even in controlled test mode, it does not include a Piper runtime, voice model, speech output, settings, or model installation functionality.
 
 There is no public release. This package is not intended for everyday use and does not indicate acceptance by the NVDA Add-on Store.
 
 ## Project purpose
 
-The project intends to provide offline NVDA speech using separately verified Piper-compatible neural voices. Implementation has not progressed beyond packaging and the deliberately unavailable driver boundary.
+The project intends to provide offline NVDA speech using separately verified Piper-compatible neural voices. Implementation has not progressed beyond packaging, the unavailable driver boundary, and controlled discovery/lifecycle testing.
 
 ## Installation status
 
@@ -16,11 +16,11 @@ Only install this development package in a controlled NVDA development or portab
 
 ## Privacy
 
-This package has no runtime code, network access, telemetry, or text logging. Future speech functionality is designed to operate offline and must not collect synthesized text.
+This package has no speech runtime, network access, telemetry, or text logging. Future speech functionality is designed to operate offline and must not collect synthesized text.
 
 ## Known limitations
 
-- The driver module can be discovered by NVDA's loader but is excluded from the selectable synthesizer list.
+- The driver is excluded from the selectable synthesizer list unless an unsupported, explicit development-test condition is supplied to the NVDA process.
 - No speech is produced.
 - No Piper runtime or voice is included.
 - There is no model installer or downloader.
@@ -28,7 +28,7 @@ This package has no runtime code, network access, telemetry, or text logging. Fu
 
 ## Removal
 
-Use NVDA's installed add-on management interface to remove the add-on, then restart NVDA if requested. Because this package contains only metadata, help, and the unavailable driver, it creates no model files or runtime data outside NVDA's add-on directory.
+Use NVDA's installed add-on management interface to remove the add-on, then restart NVDA if requested. Because this package contains only metadata, help, and the test-gated driver, it creates no model files or runtime data outside NVDA's add-on directory.
 
 ## Licence and source
 

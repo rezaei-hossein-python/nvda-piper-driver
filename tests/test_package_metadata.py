@@ -1,4 +1,4 @@
-"""Focused checks for the Phase 2A metadata-only NVDA package."""
+"""Focused metadata and archive checks for the NVDA add-on package."""
 
 import configparser
 import os
@@ -107,7 +107,7 @@ class BuiltArchiveTests(unittest.TestCase):
 			helpText = archive.read("doc/en/readme.html").decode("utf-8")
 		self.assertIn('<html lang="en">', helpText)
 		self.assertIn("<h1>", helpText)
-		self.assertIn("not selectable", helpText.lower())
+		self.assertIn("unavailable by default", helpText.lower())
 
 
 if __name__ == "__main__":

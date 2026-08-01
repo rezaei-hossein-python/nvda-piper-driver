@@ -33,7 +33,7 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2C — Controlled mock discovery
 
-**Next milestone. Do not start other Phase 2 work concurrently.**
+**Completed 2026-08-01.** Exact process-local test activation controls discovery and base-only lifecycle validation. The normal default remains unavailable, and real NVDA validation is pending.
 
 - **Objective:** make `check()` true only with an explicit test-only mock-runtime marker/dependency.
 - **Allowed:** availability abstraction and test fixture outside release package.
@@ -44,6 +44,8 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 - **Exit:** discovery is reversible, offline, and cannot be enabled accidentally in release. Stop.
 
 ## Phase 2D — Lifecycle and settings skeleton with mocks
+
+**Next milestone. Do not start other Phase 2 work concurrently.**
 
 - **Objective:** implement serialized lifecycle/state transitions and only defensible mock voice/rate settings.
 - **Allowed:** controller/state/config interfaces, fake dependencies, unit tests.

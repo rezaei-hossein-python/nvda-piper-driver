@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2B unavailable-driver skeleton is implemented.** The package contains a minimal driver whose `check()` intentionally returns `False`; it is not selectable and provides no Piper runtime, speech functionality, or public release.
+**Phase 2C controlled availability is implemented for development testing only.** The driver remains unavailable by default and becomes selectable only when an exact process-local test marker is supplied. It provides no Piper runtime, speech functionality, or public release.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phase 2A adopted the current AddonTemplate packaging conventions. Phase 2B added only the source-backed unavailable driver boundary. Phase 2C—controlled discovery with a test-only mock runtime—is the sole next milestone.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2C established packaging, an unavailable driver, and an explicit test-only availability gate. Phase 2D—mocked lifecycle and only defensible settings—is the sole next milestone.
 
 ## Why this project exists
 
@@ -97,6 +97,7 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/documentation-plan.md`](docs/documentation-plan.md)
 - [`docs/phase-2-implementation-sequence.md`](docs/phase-2-implementation-sequence.md)
 - [`docs/build-and-package.md`](docs/build-and-package.md)
+- [`docs/mock-runtime-availability.md`](docs/mock-runtime-availability.md)
 - [`docs/research-source-register.md`](docs/research-source-register.md)
 - [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)

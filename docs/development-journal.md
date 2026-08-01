@@ -101,3 +101,13 @@ Pinned `synthDriverHandler.getSynthList` discovers modules in `synthDrivers`, im
 ### Failure and scope decision
 
 Unexpected `speak()` calls raise a concise `RuntimeError`. Silent return was rejected because it would hide a loader/selection invariant violation; the exception never includes or examines the speech sequence. No constructor, settings, supported commands/notifications, cancellation, pause, termination, runtime detection, Piper/ONNX dependency, worker, thread, audio, model, configuration, file, or network behavior was added. Safe portable-NVDA discovery and non-selection testing remains pending. Phase 2C is limited to controlled test-only mock discovery.
+
+## 2026-08-01 — Phase 2C controlled availability
+
+### Mechanism decision
+
+Selected an exact, narrowly named, process-local environment marker after comparing an in-memory test flag, dependency-injected availability probe, and environment activation. The flag could not launch a separate portable NVDA process cleanly; dependency injection would create a premature runtime abstraction. The selected marker defaults false, matches one explicit value, is re-read without caching, is never written or logged, and is unsupported outside development testing. See `docs/mock-runtime-availability.md`.
+
+### Lifecycle and limits
+
+Construction repeats the availability check, rejects default/uncontrolled use, then delegates NVDA base initialization and records only an idempotent termination guard. Termination delegates base cleanup once. Hostile-sentinel tests prove `speak()` fails without inspecting user content. No safe portable NVDA copy was available, so actual normal/controlled loader visibility, selection, base configuration effects, help, and uninstall remain pending. No Piper/ONNX runtime, worker, audio, model, speech, thread, queue, subprocess, file, registry, settings UI, or network behavior was added. Phase 2D is next and must remain mock-driven.

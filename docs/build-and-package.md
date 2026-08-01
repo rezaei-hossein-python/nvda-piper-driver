@@ -4,7 +4,7 @@
 
 Phase 2A uses NV Access [AddonTemplate](https://github.com/nvaccess/AddonTemplate) commit `44fb08643974f8d30791cebe36254474251ef162`, inspected 2026-08-01, as the structural and SCons reference. The live NV Access [add-on development links](https://github.com/nvaccess/nvda/blob/master/projectDocs/dev/addons.md), [Store submission guide](https://github.com/nvaccess/addon-datastore/blob/master/docs/submitters/submissionGuide.md), [API-version data](https://github.com/nvaccess/addon-datastore/blob/master/transform/nvdaAPIVersions.json), and AddonTemplate [localization guide](https://github.com/nvaccess/AddonTemplate/blob/master/docs/l10n/addonAuthors.md) were checked on the same date.
 
-Phase 2B adds one Python add-on module: a deliberately unavailable `SynthDriver`. Its `check()` returns `False`, and unexpected `speak()` calls raise `RuntimeError` without inspecting or logging the speech sequence. The package still has no selectable synthesizer, runtime, worker, audio code, model support, native dependency, or network behavior. Building or installing it does not validate the Proposed runtime ADR and does not imply Add-on Store acceptance.
+Phase 2C retains the same single Python module and archive allowlist. Its driver is unavailable by default and is exposed only by the exact process-local development marker documented in `docs/mock-runtime-availability.md`. Unexpected `speak()` calls raise `RuntimeError` without inspecting or logging the speech sequence. The package has no usable synthesizer, runtime, worker, audio code, model support, native dependency, or network behavior. Building or installing it does not validate the Proposed runtime ADR and does not imply Add-on Store acceptance.
 
 The repository adopts the template's `buildVars.py`, manifest templates, SCons entry point, and `site_scons` builders. Deliberate deviations are narrow:
 
@@ -83,7 +83,7 @@ Run source and archive checks after building:
 
 ```powershell
 $env:NVDA_ADDON_PACKAGE = (Resolve-Path 'nvdaPiperDriver-0.1.0.nvda-addon').Path
-.\.venv\Scripts\python.exe -m unittest tests.test_package_metadata
+.\.venv\Scripts\python.exe -m unittest tests.test_package_metadata tests.test_unavailable_driver
 Remove-Item Env:NVDA_ADDON_PACKAGE
 ```
 
@@ -102,7 +102,7 @@ Do not use a primary NVDA installation for development validation. Use a disposa
 5. Remove the add-on through the same manager, restart, and confirm its directory and listing are gone.
 6. Delete the disposable portable environment only after preserving redacted test evidence needed by the project.
 
-No safe portable/development NVDA environment was available during Phases 2A or 2B, so installation, help launch, driver discovery/non-selection, restart, and uninstall tests are pending. Do not interpret the provisional `lastTestedNVDAVersion` field as evidence that these tests ran.
+No safe portable/development NVDA environment was available during Phases 2A–2C, so installation, help launch, normal/controlled discovery, construction, restart, and uninstall tests are pending. Do not interpret the provisional `lastTestedNVDAVersion` field as evidence that these tests ran.
 
 ## Known limitations
 
