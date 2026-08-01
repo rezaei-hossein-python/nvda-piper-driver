@@ -91,3 +91,13 @@ Adopted the SCons structure from official AddonTemplate commit `44fb08643974f8d3
 ### Verification and boundary
 
 The build produced an archive containing only `manifest.ini` and `doc/en/readme.html`. Eight metadata/archive checks passed, a clean rebuild succeeded, and member SHA-256 hashes matched. No safe portable NVDA environment was available, so installation, help launch, restart, and uninstall were deferred. No synthesizer, worker, Piper/ONNX runtime, audio, model, native dependency, network behavior, or public release was added. Phase 2B is the only next milestone: a minimal driver whose verified availability check returns false.
+
+## 2026-08-01 — Phase 2B unavailable driver
+
+### Verified interface boundary
+
+Pinned `synthDriverHandler.getSynthList` discovers modules in `synthDrivers`, imports their `SynthDriver` class, and includes only classes whose `check()` succeeds. Added `addon/synthDrivers/nvdaPiperDriver.py` with the required module-matching name, description, base-class inheritance, abstract `speak()` implementation, and a side-effect-free class `check()` returning exactly `False`.
+
+### Failure and scope decision
+
+Unexpected `speak()` calls raise a concise `RuntimeError`. Silent return was rejected because it would hide a loader/selection invariant violation; the exception never includes or examines the speech sequence. No constructor, settings, supported commands/notifications, cancellation, pause, termination, runtime detection, Piper/ONNX dependency, worker, thread, audio, model, configuration, file, or network behavior was added. Safe portable-NVDA discovery and non-selection testing remains pending. Phase 2C is limited to controlled test-only mock discovery.

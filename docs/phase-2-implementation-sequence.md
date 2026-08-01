@@ -21,7 +21,7 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2B — Minimal unavailable driver
 
-**Next milestone. Do not start other Phase 2 work concurrently.**
+**Completed 2026-08-01.** The package contains only the unavailable driver, manifest, and help. Isolated tests prove `check()` returns exactly `False`; controlled NVDA installation testing remains pending.
 
 - **Objective:** define only verified `SynthDriver` identity and a safe `check()` returning false.
 - **Allowed:** one driver module, pure availability tests, relevant docs.
@@ -32,6 +32,8 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 - **Exit:** no crash/import error and no selectable nonfunctional driver. Stop.
 
 ## Phase 2C — Controlled mock discovery
+
+**Next milestone. Do not start other Phase 2 work concurrently.**
 
 - **Objective:** make `check()` true only with an explicit test-only mock-runtime marker/dependency.
 - **Allowed:** availability abstraction and test fixture outside release package.

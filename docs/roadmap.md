@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Phase 2A complete — an AddonTemplate-aligned metadata and help package builds and passes archive checks. Next: Phase 2B, a minimal safely unavailable driver. No speech, Piper runtime, or public release exists.**
+**Phase 2B complete — the minimal driver is deliberately unavailable because `check()` returns `False`. Next: Phase 2C, controlled test-only mock discovery. No speech, Piper runtime, or public release exists.**
 
 ## Milestones
 
@@ -20,10 +20,10 @@
 - [x] Define the Phase 2A–2J mock-first implementation sequence.
 - [ ] Measure and accept or reverse the proposed runtime ADR.
 - [x] Phase 2A: create and validate an AddonTemplate-aligned metadata/help package; no driver.
-- [ ] Phase 2B: add a minimal safely unavailable driver.
+- [x] Phase 2B: add and isolate-test a minimal safely unavailable driver.
 - [ ] Phase 2C–2G: prove discovery, lifecycle, jobs, protocol, cancellation, and stale rejection with mocks.
 - [ ] Phase 2H–2J: integrate a verified standalone runtime, first NVDA audio, cancellation, indexes, and completion.
-- [ ] Make the driver discoverable by NVDA.
+- [x] Make the unavailable driver module discoverable by NVDA's loader while excluding it from selection.
 - [ ] Select and validate a Piper runtime integration.
 - [ ] Speak the first plain-text utterance.
 - [ ] Implement prompt cancellation and stale-result rejection.

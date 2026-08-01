@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2A metadata packaging is implemented.** The repository can build a documentation-only `.nvda-addon`, but no synthesizer driver, Piper runtime, speech functionality, or public release exists.
+**Phase 2B unavailable-driver skeleton is implemented.** The package contains a minimal driver whose `check()` intentionally returns `False`; it is not selectable and provides no Piper runtime, speech functionality, or public release.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phase 2A adopted the current AddonTemplate packaging conventions and validated a two-file archive containing only metadata and English help. Phase 2B—a minimal driver whose availability check safely returns false—is the sole next milestone.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phase 2A adopted the current AddonTemplate packaging conventions. Phase 2B added only the source-backed unavailable driver boundary. Phase 2C—controlled discovery with a test-only mock runtime—is the sole next milestone.
 
 ## Why this project exists
 

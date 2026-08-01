@@ -1,10 +1,10 @@
-# Build and package the metadata-only add-on
+# Build and package the unavailable-driver add-on
 
 ## Scope and provenance
 
 Phase 2A uses NV Access [AddonTemplate](https://github.com/nvaccess/AddonTemplate) commit `44fb08643974f8d30791cebe36254474251ef162`, inspected 2026-08-01, as the structural and SCons reference. The live NV Access [add-on development links](https://github.com/nvaccess/nvda/blob/master/projectDocs/dev/addons.md), [Store submission guide](https://github.com/nvaccess/addon-datastore/blob/master/docs/submitters/submissionGuide.md), [API-version data](https://github.com/nvaccess/addon-datastore/blob/master/transform/nvdaAPIVersions.json), and AddonTemplate [localization guide](https://github.com/nvaccess/AddonTemplate/blob/master/docs/l10n/addonAuthors.md) were checked on the same date.
 
-This is a metadata and documentation package only. It has no synthesizer, Python add-on module, runtime, worker, audio code, model support, native dependency, or network behavior. Building or installing it does not validate the Proposed runtime ADR and does not imply Add-on Store acceptance.
+Phase 2B adds one Python add-on module: a deliberately unavailable `SynthDriver`. Its `check()` returns `False`, and unexpected `speak()` calls raise `RuntimeError` without inspecting or logging the speech sequence. The package still has no selectable synthesizer, runtime, worker, audio code, model support, native dependency, or network behavior. Building or installing it does not validate the Proposed runtime ADR and does not imply Add-on Store acceptance.
 
 The repository adopts the template's `buildVars.py`, manifest templates, SCons entry point, and `site_scons` builders. Deliberate deviations are narrow:
 
@@ -70,6 +70,7 @@ The complete allowlist is:
 ```text
 manifest.ini
 doc/en/readme.html
+synthDrivers/nvdaPiperDriver.py
 ```
 
 Inspect it without extracting:
@@ -86,9 +87,9 @@ $env:NVDA_ADDON_PACKAGE = (Resolve-Path 'nvdaPiperDriver-0.1.0.nvda-addon').Path
 Remove-Item Env:NVDA_ADDON_PACKAGE
 ```
 
-The checks require the exact allowlist, required manifest fields, valid internal name/version, generated help, no Python add-on source, safe archive paths, and no `.dll`, `.exe`, `.nvda-addon`, `.onnx`, `.py`, `.pyc`, or `.wav` member.
+The checks require the exact allowlist, required manifest fields, valid internal name/version, generated help, exactly one permitted Python driver source, safe archive paths, and no forbidden dependency or binary member. The driver has a separate isolated test using a narrow `synthDriverHandler.SynthDriver` stub.
 
-Repository design documents, imported documentation, pinned NVDA source, tests, Git metadata, caches, local environments, runtime/worker files, binaries, models, and audio are intentionally excluded.
+Repository design documents, imported documentation, pinned NVDA source, tests, Git metadata, caches, local environments, runtime/worker files, binaries, models, audio, and every Python source other than `synthDrivers/nvdaPiperDriver.py` are intentionally excluded.
 
 ## Safe NVDA installation testing
 
@@ -97,15 +98,15 @@ Do not use a primary NVDA installation for development validation. Use a disposa
 1. Start the portable NVDA copy and record its exact version.
 2. Install the built archive through NVDA's add-on manager and accept a restart only in that portable copy.
 3. Confirm the add-on appears as a development package and its help opens with keyboard navigation.
-4. Confirm no Piper synthesizer is present and the NVDA log has no error attributed to this add-on.
+4. Confirm `NVDA Piper Driver` is absent from the synthesizer selection list because its availability check fails, and confirm the NVDA log has no error attributed to this add-on.
 5. Remove the add-on through the same manager, restart, and confirm its directory and listing are gone.
 6. Delete the disposable portable environment only after preserving redacted test evidence needed by the project.
 
-No safe portable/development NVDA environment was available during Phase 2A, so installation, help launch through NVDA, restart, and uninstall tests are pending. Do not interpret the provisional `lastTestedNVDAVersion` field as evidence that these tests ran.
+No safe portable/development NVDA environment was available during Phases 2A or 2B, so installation, help launch, driver discovery/non-selection, restart, and uninstall tests are pending. Do not interpret the provisional `lastTestedNVDAVersion` field as evidence that these tests ran.
 
 ## Known limitations
 
-- The package proves metadata generation and archive contents only.
+- The package proves metadata generation, archive contents, isolated import, identity, and deliberate unavailability only.
 - AddonTemplate commit changes, Store validation changes, and new API-version data require revalidation.
 - Translation extraction and translated packages were not exercised; no translations are included.
 - Byte-for-byte archive reproducibility is not claimed because ZIP metadata may vary. Two clean Phase 2A builds produced identical member names and SHA-256 content hashes.

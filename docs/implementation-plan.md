@@ -76,15 +76,15 @@ Exit criteria:
 - each asynchronous boundary has explicit identities, invariants, limits, failure behavior, and unresolved experiments;
 - accessibility, privacy, security, quality, governance, and release obligations have objective gates;
 - Phase 2 can proceed milestone by milestone without inventing architecture in code;
-- the runtime ADR remains Proposed and implementation has not begun.
+- the runtime ADR remains Proposed; at Phase 1C completion, implementation had not begun.
 
-See `docs/phase-2-implementation-sequence.md`. Phase 2A is complete; the immediate next milestone is Phase 2B only.
+See `docs/phase-2-implementation-sequence.md`. Phases 2A and 2B are complete; the immediate next milestone is Phase 2C only.
 
 ## Phase 2 — Minimal add-on and driver skeleton
 
 This summary is superseded for execution by the separate Phase 2A–2J stop-gated sequence. Do not combine its milestones.
 
-Phase 2A produced the metadata-only package described in `docs/build-and-package.md`: no driver or runtime is present. Phase 2B must add only a minimal unavailable driver whose verified `check()` returns false.
+Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver whose verified `check()` returns false. Phase 2C may introduce controlled test-only mock discovery, but no real Piper runtime.
 
 Deliverables:
 

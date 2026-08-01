@@ -10,8 +10,12 @@ import buildVars
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_ARCHIVE_FILES = {"doc/en/readme.html", "manifest.ini"}
-FORBIDDEN_EXTENSIONS = {".dll", ".exe", ".nvda-addon", ".onnx", ".py", ".pyc", ".wav"}
+EXPECTED_ARCHIVE_FILES = {
+	"doc/en/readme.html",
+	"manifest.ini",
+	"synthDrivers/nvdaPiperDriver.py",
+}
+FORBIDDEN_EXTENSIONS = {".dll", ".exe", ".nvda-addon", ".onnx", ".pyc", ".wav"}
 REQUIRED_MANIFEST_FIELDS = {
 	"author",
 	"description",
@@ -58,9 +62,9 @@ class SourceMetadataTests(unittest.TestCase):
 	def test_help_source_exists(self) -> None:
 		self.assertTrue((ROOT / "addon" / "doc" / "en" / "readme.md").is_file())
 
-	def test_no_synthesizer_driver_exists(self) -> None:
-		self.assertFalse((ROOT / "addon" / "synthDrivers").exists())
-		self.assertEqual([], list((ROOT / "addon").rglob("*.py")))
+	def test_only_expected_synthesizer_driver_exists(self) -> None:
+		pythonFiles = [path.relative_to(ROOT / "addon").as_posix() for path in (ROOT / "addon").rglob("*.py")]
+		self.assertEqual(["synthDrivers/nvdaPiperDriver.py"], pythonFiles)
 
 
 class BuiltArchiveTests(unittest.TestCase):
@@ -103,7 +107,7 @@ class BuiltArchiveTests(unittest.TestCase):
 			helpText = archive.read("doc/en/readme.html").decode("utf-8")
 		self.assertIn('<html lang="en">', helpText)
 		self.assertIn("<h1>", helpText)
-		self.assertIn("no synthesizer", helpText.lower())
+		self.assertIn("not selectable", helpText.lower())
 
 
 if __name__ == "__main__":
