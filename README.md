@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Research and architecture phase.** No working synthesizer driver has been released yet.
+**Detailed design complete; implementation has not begun.** No working synthesizer driver or add-on skeleton has been released.
 
-The project is currently documenting NVDA's synthesizer interfaces, evaluating Piper runtime integration, and defining a small, testable implementation plan.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. The next milestone is Phase 2A: AddonTemplate-aligned packaging metadata and documentation only, with no synthesizer driver.
 
 ## Why this project exists
 
@@ -46,7 +46,7 @@ The intended design has four main layers:
 3. **Piper runtime service** — loads compatible models and produces PCM audio without blocking NVDA's main thread.
 4. **Audio and lifecycle controller** — streams audio, interrupts promptly, releases resources safely, and reports failures accessibly.
 
-This architecture is provisional until the current NVDA source and developer documentation have been fully reviewed.
+This architecture remains provisional until mock-worker and local Piper/audio measurements satisfy the Proposed runtime ADR.
 
 ## Repository structure
 
@@ -82,6 +82,22 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/roadmap.md`](docs/roadmap.md)
 - [`docs/coding-standards.md`](docs/coding-standards.md)
 - [`docs/development-journal.md`](docs/development-journal.md)
+- [`docs/driver-state-machine.md`](docs/driver-state-machine.md)
+- [`docs/speech-job-model.md`](docs/speech-job-model.md)
+- [`docs/worker-protocol.md`](docs/worker-protocol.md)
+- [`docs/audio-pipeline.md`](docs/audio-pipeline.md)
+- [`docs/model-and-voice-management.md`](docs/model-and-voice-management.md)
+- [`docs/configuration-schema.md`](docs/configuration-schema.md)
+- [`docs/error-handling-and-recovery.md`](docs/error-handling-and-recovery.md)
+- [`docs/security-threat-model.md`](docs/security-threat-model.md)
+- [`docs/testing-strategy.md`](docs/testing-strategy.md)
+- [`docs/continuous-integration-plan.md`](docs/continuous-integration-plan.md)
+- [`docs/accessibility-acceptance-criteria.md`](docs/accessibility-acceptance-criteria.md)
+- [`docs/project-governance-and-support.md`](docs/project-governance-and-support.md)
+- [`docs/documentation-plan.md`](docs/documentation-plan.md)
+- [`docs/phase-2-implementation-sequence.md`](docs/phase-2-implementation-sequence.md)
+- [`docs/research-source-register.md`](docs/research-source-register.md)
+- [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)
 
 ## Contributing

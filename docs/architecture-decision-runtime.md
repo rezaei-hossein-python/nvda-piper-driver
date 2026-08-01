@@ -23,6 +23,8 @@ Per-utterance Piper executable; embedded Python package; direct ONNX Runtime; in
 
 Prototype a long-running, child-only, non-networked x64 worker. Use a bounded, versioned IPC protocol; keep one verified model warm; tag commands/events with generation IDs; stream bounded PCM chunks; cancel playback immediately; request inference cancellation; discard all stale events; and kill/restart a hung worker under a conservative policy. The first backend evaluated in that worker will be the current Piper API/library. A worker-wrapped verified CLI is the fallback.
 
+Phase 1C details this proposal in `docs/driver-state-machine.md`, `docs/speech-job-model.md`, `docs/worker-protocol.md`, `docs/audio-pipeline.md`, and `docs/security-threat-model.md`. Those documents add design precision but no implementation evidence.
+
 This decision is **not accepted**. It remains Proposed until local measurements and redistribution review succeed.
 
 ## Consequences
@@ -36,6 +38,8 @@ Worker startup or model load may still be too slow; cancellation may stop playba
 ## Required experiments
 
 Run every benchmark and fault scenario listed in `docs/piper-runtime-evaluation.md`, verify x64 clean-machine packaging, audit all transitive components and model licences, test current installed/portable NVDA, and demonstrate deterministic install/update/remove/restart behavior.
+
+Before changing this status, also complete the fake-worker cancellation/stale-generation milestones, compare streamed PCM with complete-buffer and worker-playback alternatives, measure index alignment and audio-device recovery, and verify IPC/process containment and protocol limits.
 
 ## Conditions that would reverse the decision
 

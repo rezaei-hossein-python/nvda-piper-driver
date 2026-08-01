@@ -67,3 +67,17 @@ Process isolation best addresses native crash and NVDA Python-ABI risk. Sonata r
 ### Next gate
 
 Before accepting the runtime decision, run the cold/warm latency, cancellation, stress, resource, crash, lifecycle, clean-machine, multilingual, and Persian benchmarks listed in `docs/piper-runtime-evaluation.md`. Before any public release, complete `docs/addon-store-readiness.md`; acceptance is not guaranteed.
+
+## 2026-08-01 — Phase 1C detailed design and quality framework
+
+### Design outputs
+
+Converted Phase 1A/1B evidence into separate Proposed designs for lifecycle state, immutable speech jobs, worker IPC, PCM/audio notifications, model/voice management, configuration, error recovery, and security boundaries. Added layered testing and performance methodology, staged CI, objective accessibility criteria, governance/support and documentation plans, an external-source register, a critical repository-quality review, and exact Phase 2A–2J stop gates.
+
+### Decisions retained
+
+The leading architecture remains a child-only, non-networked, persistent worker with generation-tagged bounded messages and NVDA-side streamed PCM playback. `synthDoneSpeaking` is provisionally associated with final current-generation playback, not inference completion. Models are initially installed manually without network access and are stored separately from replaceable add-on files. None of these benchmark-dependent choices is Accepted.
+
+### Negative findings and next step
+
+The design set creates cross-document maintenance risk and must be consolidated into user help and operational policies before beta. There is still no add-on skeleton, driver, runtime, model, benchmark, security audit, legal clearance, or Store approval. Stop Phase 1 research expansion and perform Phase 2A only as defined in `docs/phase-2-implementation-sequence.md`.

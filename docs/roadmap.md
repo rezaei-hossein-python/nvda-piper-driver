@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Phase 1B — Research Piper runtime, the NVDA neural-speech ecosystem, and Add-on Store readiness. No implementation code exists.**
+**Phase 1C complete — detailed design is documented. Next: Phase 2A, AddonTemplate-aligned repository skeleton and manifest only. No synthesizer driver or implementation exists.**
 
 ## Milestones
 
@@ -16,8 +16,13 @@
 - [x] Document NVDA speech commands, indexes, cancellation, and audio flow.
 - [x] Evaluate Piper runtime and process-isolation options provisionally.
 - [x] Review neural-speech ecosystem evidence and current Store requirements.
+- [x] Define detailed lifecycle, worker, audio, model, security, quality, accessibility, and governance designs.
+- [x] Define the Phase 2A–2J mock-first implementation sequence.
 - [ ] Measure and accept or reverse the proposed runtime ADR.
-- [ ] Create a minimal add-on package.
+- [ ] Phase 2A: create AddonTemplate-aligned skeleton and manifest only; no driver.
+- [ ] Phase 2B: add a minimal safely unavailable driver.
+- [ ] Phase 2C–2G: prove discovery, lifecycle, jobs, protocol, cancellation, and stale rejection with mocks.
+- [ ] Phase 2H–2J: integrate a verified standalone runtime, first NVDA audio, cancellation, indexes, and completion.
 - [ ] Make the driver discoverable by NVDA.
 - [ ] Select and validate a Piper runtime integration.
 - [ ] Speak the first plain-text utterance.

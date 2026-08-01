@@ -2,7 +2,9 @@
 
 ## Status
 
-This document describes the provisional architecture after Phase 1A/1B research. The runtime decision remains Proposed until the proof-of-concept measurements in `docs/architecture-decision-runtime.md` exist.
+This document maps the detailed provisional architecture after Phases 1A–1C. The runtime decision remains Proposed until the proof-of-concept measurements in `docs/architecture-decision-runtime.md` exist. Implementation has not begun.
+
+Detailed specifications are in `docs/driver-state-machine.md`, `docs/speech-job-model.md`, `docs/worker-protocol.md`, `docs/audio-pipeline.md`, `docs/model-and-voice-management.md`, `docs/configuration-schema.md`, `docs/error-handling-and-recovery.md`, and `docs/security-threat-model.md`.
 
 ## Design objectives
 
@@ -71,6 +73,8 @@ Each synthesis request should carry a generation identifier or cancellation toke
 
 The worker owns model loading and inference; the NVDA-side audio controller owns prompt interruption and discards events from stale generations. The exact audio abstraction and index-to-audio mapping still require a proof of concept against the pinned source.
 
+One serialized controller provisionally owns lifecycle transitions. Each worker/audio event must match the current worker session, generation, job, and sequence before it may affect buffering or NVDA notifications. Normal completion is provisionally tied to final PCM playback, not inference completion.
+
 ## Distribution boundary
 
 The add-on should initially contain no voice model. Any later downloader must require explicit consent, use HTTPS and verified metadata/checksums, and retain an offline local-file path. Every runtime and voice component needs independently recorded provenance, licence, redistribution rights, and security-update ownership. Store readiness is defined in `docs/addon-store-readiness.md` and does not imply acceptance.
@@ -128,3 +132,5 @@ Secure-screen support is outside the prototype scope and requires a separate thr
 - Should model loading be eager, lazy, or background-warmed?
 - How should multi-speaker models be exposed?
 - What minimum Windows and NVDA versions should the first release support?
+
+Phase 1C narrows these questions but does not resolve benchmark-dependent buffer sizes, timeouts, index precision, runtime redistribution, or supported release ranges. See the detailed documents and source register.

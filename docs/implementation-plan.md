@@ -62,7 +62,27 @@ Exit criteria:
 
 No implementation, driver skeleton, binary, or voice model is produced in this phase.
 
+## Phase 1C — Detailed architecture and quality framework
+
+Deliverables:
+
+- lifecycle/state, speech-job, worker-protocol, audio, model/configuration, error, and threat-model designs;
+- testing, CI, accessibility, governance/support, and documentation plans;
+- auditable research-source register and repository-quality review;
+- exact mock-first Phase 2A–2J sequence.
+
+Exit criteria:
+
+- each asynchronous boundary has explicit identities, invariants, limits, failure behavior, and unresolved experiments;
+- accessibility, privacy, security, quality, governance, and release obligations have objective gates;
+- Phase 2 can proceed milestone by milestone without inventing architecture in code;
+- the runtime ADR remains Proposed and implementation has not begun.
+
+See `docs/phase-2-implementation-sequence.md`. The immediate next milestone is Phase 2A only.
+
 ## Phase 2 — Minimal add-on and driver skeleton
+
+This summary is superseded for execution by the separate Phase 2A–2J stop-gated sequence. Do not combine its milestones.
 
 Deliverables:
 
