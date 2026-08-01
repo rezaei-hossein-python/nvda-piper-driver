@@ -1,0 +1,3 @@
+# Versions match NV Access AddonTemplate commit 44fb08643974f8d30791cebe36254474251ef162.
+scons==4.10.1
+Markdown==3.10

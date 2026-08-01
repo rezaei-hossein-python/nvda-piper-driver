@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Detailed design complete; implementation has not begun.** No working synthesizer driver or add-on skeleton has been released.
+**Phase 2A metadata packaging is implemented.** The repository can build a documentation-only `.nvda-addon`, but no synthesizer driver, Piper runtime, speech functionality, or public release exists.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. The next milestone is Phase 2A: AddonTemplate-aligned packaging metadata and documentation only, with no synthesizer driver.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phase 2A adopted the current AddonTemplate packaging conventions and validated a two-file archive containing only metadata and English help. Phase 2B—a minimal driver whose availability check safely returns false—is the sole next milestone.
 
 ## Why this project exists
 
@@ -96,13 +96,14 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/project-governance-and-support.md`](docs/project-governance-and-support.md)
 - [`docs/documentation-plan.md`](docs/documentation-plan.md)
 - [`docs/phase-2-implementation-sequence.md`](docs/phase-2-implementation-sequence.md)
+- [`docs/build-and-package.md`](docs/build-and-package.md)
 - [`docs/research-source-register.md`](docs/research-source-register.md)
 - [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)
 
 ## Contributing
 
-This project is in an early research phase. Contributions should be narrowly scoped, documented, and based on current NVDA interfaces. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+This project is in an early implementation phase with metadata packaging only. Contributions should be narrowly scoped, documented, and based on current NVDA interfaces. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Licence
 

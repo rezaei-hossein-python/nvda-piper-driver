@@ -7,6 +7,9 @@ venv/
 build/
 dist/
 *.nvda-addon
+.sconsign.dblite
+addon/manifest.ini
+addon/doc/*/*.html
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

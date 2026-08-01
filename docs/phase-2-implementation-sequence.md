@@ -8,6 +8,8 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2A — AddonTemplate-aligned skeleton and manifest only
 
+**Completed 2026-08-01.** The metadata/help package and its build evidence are documented in `docs/build-and-package.md`. Controlled NVDA installation testing remains pending and no public release exists.
+
 - **Objective:** adopt the current official template/build metadata with no driver.
 - **Allowed:** root template/config files, manifest templates, `addon/doc/`, locale placeholders, repository docs, minimal packaging fixtures explicitly produced by tests but untracked.
 - **Forbidden:** `addon/synthDrivers/`, worker/runtime/audio/model code, native assets, real voice configuration.
@@ -18,6 +20,8 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 - **Exit:** current template provenance recorded; package contains only expected docs/metadata; no synth driver. Stop.
 
 ## Phase 2B — Minimal unavailable driver
+
+**Next milestone. Do not start other Phase 2 work concurrently.**
 
 - **Objective:** define only verified `SynthDriver` identity and a safe `check()` returning false.
 - **Allowed:** one driver module, pure availability tests, relevant docs.

@@ -1,0 +1,8 @@
+# Set default text handling when contributors have different Git configurations.
+* text=auto
+
+# Keep Python and SCons sources consistent with the official template style.
+*.py text eol=lf
+sconstruct text eol=lf
+*.tpl text eol=lf
+*.md text eol=lf

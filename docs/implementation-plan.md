@@ -78,11 +78,13 @@ Exit criteria:
 - Phase 2 can proceed milestone by milestone without inventing architecture in code;
 - the runtime ADR remains Proposed and implementation has not begun.
 
-See `docs/phase-2-implementation-sequence.md`. The immediate next milestone is Phase 2A only.
+See `docs/phase-2-implementation-sequence.md`. Phase 2A is complete; the immediate next milestone is Phase 2B only.
 
 ## Phase 2 — Minimal add-on and driver skeleton
 
 This summary is superseded for execution by the separate Phase 2A–2J stop-gated sequence. Do not combine its milestones.
+
+Phase 2A produced the metadata-only package described in `docs/build-and-package.md`: no driver or runtime is present. Phase 2B must add only a minimal unavailable driver whose verified `check()` returns false.
 
 Deliverables:
 

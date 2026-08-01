@@ -81,3 +81,13 @@ The leading architecture remains a child-only, non-networked, persistent worker 
 ### Negative findings and next step
 
 The design set creates cross-document maintenance risk and must be consolidated into user help and operational policies before beta. There is still no add-on skeleton, driver, runtime, model, benchmark, security audit, legal clearance, or Store approval. Stop Phase 1 research expansion and perform Phase 2A only as defined in `docs/phase-2-implementation-sequence.md`.
+
+## 2026-08-01 — Phase 2A metadata-only package
+
+### Template and metadata decisions
+
+Adopted the SCons structure from official AddonTemplate commit `44fb08643974f8d30791cebe36254474251ef162` without replacing the existing repository. The manifest uses internal name `nvdaPiperDriver`, numeric version `0.1.0`, and `updateChannel = dev`; `0.1.0-dev` was rejected because current Store validation accepts only numeric `major.minor[.patch]` versions. Both API fields are provisionally `2026.1.0`, matching pinned x64/Python 3.13 compatibility and the live non-experimental Store list, but safe NVDA installation testing remains a release blocker.
+
+### Verification and boundary
+
+The build produced an archive containing only `manifest.ini` and `doc/en/readme.html`. Eight metadata/archive checks passed, a clean rebuild succeeded, and member SHA-256 hashes matched. No safe portable NVDA environment was available, so installation, help launch, restart, and uninstall were deferred. No synthesizer, worker, Piper/ONNX runtime, audio, model, native dependency, network behavior, or public release was added. Phase 2B is the only next milestone: a minimal driver whose verified availability check returns false.

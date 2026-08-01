@@ -1,0 +1,105 @@
+# NVDA add-on build entry point, adapted from NV Access AddonTemplate.
+# Copyright (C) 2012-2025 Rui Batista, Noelia Martinez, Joseph Lee
+# This file is covered by the GNU General Public License v2 or later.
+# See LICENSE for details.
+
+import os
+import sys
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Final
+
+from SCons.Node import FS
+from SCons.Script import BoolVariable, EnsurePythonVersion, Environment, Variables
+
+EnsurePythonVersion(3, 10)
+sys.dont_write_bytecode = True
+
+import buildVars  # noqa: E402
+
+
+def validateVersionNumber(key: str, val: str, _) -> None:
+	if val == "0.0.0":
+		return
+	parts = val.split(".")
+	if len(parts) != 3 or not all(part.isnumeric() for part in parts):
+		raise ValueError(f"{key} must contain three numeric parts (major.minor.patch)")
+
+
+def expandGlobs(patterns: Iterable[str], rootdir: Path = Path(".")) -> list[FS.Entry]:
+	return [env.Entry(entry) for pattern in patterns for entry in rootdir.glob(pattern.lstrip("/"))]
+
+
+addonDir: Final = Path("addon")
+localeDir: Final = addonDir / "locale"
+docsDir: Final = addonDir / "doc"
+
+variables = Variables()
+variables.Add("version", "The version of this build", buildVars.addon_info["addon_version"])
+variables.Add("versionNumber", "Version number in major.minor.patch form", "0.0.0", validateVersionNumber)
+variables.Add(BoolVariable("dev", "Whether this is a dated development build", False))
+variables.Add("channel", "Update channel for this build", buildVars.addon_info["addon_updateChannel"])
+
+env = Environment(variables=variables, ENV=os.environ, tools=["gettexttool", "NVDATool"])
+env.Append(
+	addon_info=buildVars.addon_info,
+	brailleTables=buildVars.brailleTables,
+	symbolDictionaries=buildVars.symbolDictionaries,
+	speechDictionaries=buildVars.speechDictionaries,
+)
+
+if env["version"] is not None:
+	env["addon_info"]["addon_version"] = env["version"]
+if env["channel"] is not None:
+	env["addon_info"]["addon_updateChannel"] = env["channel"]
+
+env.Append(**env["addon_info"])
+addonFile = env.File("${addon_name}-${addon_version}.nvda-addon")
+addon = env.NVDAAddon(addonFile, env.Dir(addonDir), excludePatterns=buildVars.excludedFiles)
+
+languageDirs: list[FS.Dir] = [env.Dir(path) for path in env.Glob(localeDir / "*/") if path.isdir()]
+moByLanguage: dict[str, FS.File] = {}
+for languageDir in languageDirs:
+	poFile = languageDir.File(os.path.join("LC_MESSAGES", "nvda.po"))
+	moTarget = env.gettextMoFile(poFile)
+	moFile = env.File(moTarget[0])
+	moByLanguage[languageDir.name] = moFile
+	env.Depends(moTarget, poFile)
+	translatedManifest = env.NVDATranslatedManifest(
+		languageDir.File("manifest.ini"), [moFile, "manifest-translated.ini.tpl"]
+	)
+	env.Depends(translatedManifest, ["buildVars.py"])
+	env.Depends(addon, [translatedManifest, moTarget])
+
+for pythonFile in expandGlobs(buildVars.pythonSources):
+	env.Depends(addon, pythonFile)
+
+generatedDocs = []
+for markdownFile in env.Glob(docsDir / "*/*.md"):
+	language = markdownFile.dir.name
+	htmlFile = env.md2html(
+		markdownFile,
+		moFile=moByLanguage.get(language),
+		mdExtensions=buildVars.markdownExtensions,
+	)
+	env.Depends(htmlFile, markdownFile)
+	if moFile := moByLanguage.get(language):
+		env.Depends(htmlFile, moFile)
+	env.Depends(addon, htmlFile)
+	generatedDocs.append(htmlFile)
+
+i18nFiles = expandGlobs(buildVars.i18nSources)
+gettextVariables: dict[str, str] = {
+	"gettext_package_bugs_address": "nvda-translations@groups.io",
+	"gettext_package_name": buildVars.addon_info["addon_name"],
+	"gettext_package_version": buildVars.addon_info["addon_version"],
+}
+pot = env.gettextPotFile("${addon_name}.pot", i18nFiles, **gettextVariables)
+env.Alias("pot", pot)
+env.Depends(pot, i18nFiles)
+
+manifest = env.NVDAManifest(env.File(addonDir / "manifest.ini"), "manifest.ini.tpl")
+env.Depends(manifest, "buildVars.py")
+env.Depends(addon, manifest)
+env.Default(addon)
+env.Clean(addon, [".sconsign.dblite", manifest, *generatedDocs])

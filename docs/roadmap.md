@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Phase 1C complete — detailed design is documented. Next: Phase 2A, AddonTemplate-aligned repository skeleton and manifest only. No synthesizer driver or implementation exists.**
+**Phase 2A complete — an AddonTemplate-aligned metadata and help package builds and passes archive checks. Next: Phase 2B, a minimal safely unavailable driver. No speech, Piper runtime, or public release exists.**
 
 ## Milestones
 
@@ -19,7 +19,7 @@
 - [x] Define detailed lifecycle, worker, audio, model, security, quality, accessibility, and governance designs.
 - [x] Define the Phase 2A–2J mock-first implementation sequence.
 - [ ] Measure and accept or reverse the proposed runtime ADR.
-- [ ] Phase 2A: create AddonTemplate-aligned skeleton and manifest only; no driver.
+- [x] Phase 2A: create and validate an AddonTemplate-aligned metadata/help package; no driver.
 - [ ] Phase 2B: add a minimal safely unavailable driver.
 - [ ] Phase 2C–2G: prove discovery, lifecycle, jobs, protocol, cancellation, and stale rejection with mocks.
 - [ ] Phase 2H–2J: integrate a verified standalone runtime, first NVDA audio, cancellation, indexes, and completion.

@@ -32,4 +32,6 @@ Before first public testing, require README/status, install/model/config/trouble
 
 ## Consolidation policy
 
+`docs/build-and-package.md` is now the Phase 2A source of truth for developer environment setup, package commands, archive allowlisting, and safe installation testing. Before public testing, split user installation instructions from this contributor-focused build record rather than duplicating commands across design documents.
+
 Phase 1C intentionally creates narrow design files for implementability. Before beta, consolidate user-facing material into Add-on Help while retaining technical source documents. Avoid duplicating setting/error tables across help: generate or cross-reference from the authoritative schema/taxonomy. Merge `implementation-plan.md` and the detailed Phase 2 sequence after Phase 2 completes; archive research snapshots rather than maintaining the same current facts in multiple places.

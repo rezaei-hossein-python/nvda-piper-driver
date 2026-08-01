@@ -20,5 +20,6 @@ The project has not released a public version.
 - Add-on Store readiness, native dependency, security, accessibility, licensing, and release checklists.
 - Phase 1C detailed lifecycle, job, worker protocol, audio, model, configuration, error-recovery, and threat-model designs.
 - Testing, CI, accessibility acceptance, governance, support, documentation, source-register, repository-quality, and exact Phase 2 implementation plans.
+- AddonTemplate-aligned metadata-only package generation, localizable manifest text, packaged English help, and focused archive validation.
 
-No implementation code, add-on skeleton, runtime binary, or voice model has been added.
+No synthesizer driver, Piper runtime, worker, audio implementation, runtime binary, or voice model has been added. The generated development package is not a public release and has not been submitted to the Add-on Store.
