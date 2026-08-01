@@ -31,6 +31,8 @@ Phase 2C adds a narrower pre-integration layer: isolated tests patch only the ex
 
 Phase 2D extends only that isolated layer. Tests require exactly the initializing/ready/terminated states, one fixed non-speaking voice, strict in-memory rate validation, irreversible one-time base termination, failure of active settings after termination, and hostile-sentinel speech failures in ready and terminated states. The stubs do not exercise NVDA's real configuration callback, settings ring, or voice-dictionary behavior; disposable portable-NVDA validation remains pending.
 
+Phase 2E adds pure tests for frozen job/item records, exact list input, exact driver-facing command types, text fidelity including Persian and Unicode controls, command-field preservation, malformed and unsupported inputs, failure-atomic counters, identifier exhaustion, settings snapshots, and lifecycle gating. Narrow command stubs mirror the pinned field contracts without importing the full NVDA application. These tests do not establish synthesis safety or runtime support for any represented command.
+
 ### Accessibility acceptance
 
 Execute `docs/accessibility-acceptance-criteria.md` with keyboard and NVDA: focus/order/names/states, validation and recovery, manual model import, progress/cancel, first run, restart prompts, help navigation, localization, and announcement rate.

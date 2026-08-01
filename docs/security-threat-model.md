@@ -1,5 +1,7 @@
 # Practical security threat model
 
+> Phase 2E's pure converter performs no I/O and does not log or globally retain speech text. Exact container/item checks, bounded identifiers, immutable copies, and text-free unsupported-item errors reduce accidental execution and disclosure risk, but do not establish safety of later synthesis, IPC, models, or audio.
+
 ## Scope, assets, and boundaries
 
 This is defensive design, not certification or legal clearance. Assets: NVDA availability, user text, local files/configuration/models, audio privacy/integrity, process and release integrity, and user trust. Boundaries: NVDA core ↔ add-on; add-on ↔ child IPC; worker ↔ native Piper/eSpeak/ONNX Runtime; runtime ↔ model/config; managed data ↔ temporary storage; repository/release pipeline ↔ installed asset; and a future downloader ↔ network/catalogue. Secure-screen use is unsupported.

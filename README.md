@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2D mock lifecycle and settings are implemented for development testing only.** The driver remains unavailable by default and becomes selectable only when an exact process-local test marker is supplied. Its fixed mock voice and in-memory rate setting do not affect speech. It provides no speech-job conversion, Piper runtime, speech functionality, or public release.
+**Phase 2E immutable speech-job conversion is implemented for development testing only.** The driver remains unavailable by default and becomes selectable only when an exact process-local test marker is supplied. Its private converter can copy supported NVDA sequence items into immutable records, but `speak()` does not call it. No job is queued or executed, and no speech is produced.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2D established packaging, an unavailable-by-default driver, an explicit test-only availability gate, and a minimal mock lifecycle/settings boundary. Phase 2E—pure speech-job conversion with mocks—is the sole next milestone.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2E established packaging, an unavailable-by-default driver, the test-only availability gate, mock lifecycle/settings, and pure conversion. Phase 2F—a fake-worker protocol prototype with no real TTS—is the sole next milestone.
 
 ## Why this project exists
 
@@ -99,13 +99,14 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/build-and-package.md`](docs/build-and-package.md)
 - [`docs/mock-runtime-availability.md`](docs/mock-runtime-availability.md)
 - [`docs/mock-lifecycle-and-settings.md`](docs/mock-lifecycle-and-settings.md)
+- [`docs/speech-job-conversion.md`](docs/speech-job-conversion.md)
 - [`docs/research-source-register.md`](docs/research-source-register.md)
 - [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)
 
 ## Contributing
 
-This project is in an early implementation phase with metadata packaging only. Contributions should be narrowly scoped, documented, and based on current NVDA interfaces. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+This project is in an early mock-driven implementation phase with no working speech runtime. Contributions should be narrowly scoped, documented, and based on current NVDA interfaces. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Licence
 

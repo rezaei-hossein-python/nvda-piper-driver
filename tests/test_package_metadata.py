@@ -13,6 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_ARCHIVE_FILES = {
 	"doc/en/readme.html",
 	"manifest.ini",
+	"synthDrivers/_nvdaPiperDriver/__init__.py",
+	"synthDrivers/_nvdaPiperDriver/conversion.py",
+	"synthDrivers/_nvdaPiperDriver/jobs.py",
 	"synthDrivers/nvdaPiperDriver.py",
 }
 FORBIDDEN_EXTENSIONS = {".dll", ".exe", ".nvda-addon", ".onnx", ".pyc", ".wav"}
@@ -62,9 +65,12 @@ class SourceMetadataTests(unittest.TestCase):
 	def test_help_source_exists(self) -> None:
 		self.assertTrue((ROOT / "addon" / "doc" / "en" / "readme.md").is_file())
 
-	def test_only_expected_synthesizer_driver_exists(self) -> None:
-		pythonFiles = [path.relative_to(ROOT / "addon").as_posix() for path in (ROOT / "addon").rglob("*.py")]
-		self.assertEqual(["synthDrivers/nvdaPiperDriver.py"], pythonFiles)
+	def test_only_expected_python_sources_exist(self) -> None:
+		pythonFiles = sorted(path.relative_to(ROOT / "addon").as_posix() for path in (ROOT / "addon").rglob("*.py"))
+		self.assertEqual(sorted(EXPECTED_ARCHIVE_FILES - {"doc/en/readme.html", "manifest.ini"}), pythonFiles)
+		supportPackage = ROOT / "addon" / "synthDrivers" / "_nvdaPiperDriver"
+		self.assertTrue(supportPackage.name.startswith("_"))
+		self.assertTrue((supportPackage / "__init__.py").is_file())
 
 
 class BuiltArchiveTests(unittest.TestCase):

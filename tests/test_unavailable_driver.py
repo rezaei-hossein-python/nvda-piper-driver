@@ -86,6 +86,11 @@ class StubSynthDriver(ABC):
 		raise NotImplementedError
 
 
+class StubSpeechJobConverter:
+	def convert(self, speechSequence, *, voiceId, rate):
+		raise AssertionError("Phase 2D tests must not convert speech")
+
+
 def loadDriverModule() -> types.ModuleType:
 	stubHandler = types.ModuleType("synthDriverHandler")
 	stubHandler.SynthDriver = StubSynthDriver  # type: ignore[attr-defined]
@@ -94,11 +99,23 @@ def loadDriverModule() -> types.ModuleType:
 		displayName=displayName,
 		language=language,
 	)
+	stubConversion = types.ModuleType("synthDrivers._nvdaPiperDriver.conversion")
+	stubConversion.SpeechJobConverter = StubSpeechJobConverter  # type: ignore[attr-defined]
+	stubJobs = types.ModuleType("synthDrivers._nvdaPiperDriver.jobs")
+	stubJobs.SpeechJob = object  # type: ignore[attr-defined]
 	spec = importlib.util.spec_from_file_location(MODULE_NAME, DRIVER_PATH)
 	if spec is None or spec.loader is None:
 		raise AssertionError("Unable to create driver import specification")
 	module = importlib.util.module_from_spec(spec)
-	with patch.dict(sys.modules, {"synthDriverHandler": stubHandler, MODULE_NAME: module}):
+	with patch.dict(
+		sys.modules,
+		{
+			"synthDriverHandler": stubHandler,
+			"synthDrivers._nvdaPiperDriver.conversion": stubConversion,
+			"synthDrivers._nvdaPiperDriver.jobs": stubJobs,
+			MODULE_NAME: module,
+		},
+	):
 		spec.loader.exec_module(module)
 	return module
 
@@ -171,7 +188,7 @@ class UnavailableDriverTests(unittest.TestCase):
 			for node in ast.walk(tree)
 			if isinstance(node, ast.ImportFrom) and node.module
 		)
-		self.assertEqual({"collections", "enum", "os", "synthDriverHandler"}, imports)
+		self.assertEqual({"collections", "enum", "os", "synthDriverHandler", "synthDrivers"}, imports)
 		self.assertTrue(imports.isdisjoint(FORBIDDEN_IMPORT_ROOTS))
 
 	def test_construction_requires_marker_and_owns_no_runtime_resources(self) -> None:
@@ -182,7 +199,7 @@ class UnavailableDriverTests(unittest.TestCase):
 			driver = self.module.SynthDriver()
 		self.assertEqual(self.module._MockLifecycleState.READY, driver._state)
 		self.assertEqual(
-			{"_state", "_voice", "_rate", "baseInitialized", "baseTerminateCalls"},
+			{"_state", "_voice", "_rate", "_jobConverter", "baseInitialized", "baseTerminateCalls"},
 			set(driver.__dict__),
 		)
 
@@ -280,7 +297,7 @@ class UnavailableDriverTests(unittest.TestCase):
 		with self._availableEnvironment():
 			driver = self.module.SynthDriver()
 		initialState = driver._state
-		with self.assertRaisesRegex(RuntimeError, "Phase 2D has no speech implementation"):
+		with self.assertRaisesRegex(RuntimeError, "Phase 2E has no speech implementation"):
 			driver.speak(PrivateSpeechSequence())
 		self.assertIs(initialState, driver._state)
 		driver.terminate()

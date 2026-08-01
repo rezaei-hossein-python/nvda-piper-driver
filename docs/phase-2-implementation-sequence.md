@@ -57,7 +57,7 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2E — Speech-job conversion with mocks
 
-**Next milestone. Do not start other Phase 2 work concurrently.**
+**Complete. Phase 2F is the sole next milestone.**
 
 - **Objective:** convert pinned NVDA sequences into immutable jobs.
 - **Allowed:** pure job/command modules and fixtures.
@@ -68,6 +68,8 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 - **Exit:** pure deterministic conversion and no logs containing sentinel text. Stop.
 
 ## Phase 2F — Fake-worker protocol prototype
+
+**Next milestone. Do not start other Phase 2 work concurrently.**
 
 - **Objective:** implement framed IPC/session/handshake using a fake child.
 - **Allowed:** protocol/client/process abstractions, fake executable/script used only in tests, serialization tests.

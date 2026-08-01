@@ -27,8 +27,11 @@ addon_info = AddonInfo(
 	addon_licenseURL="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
 )
 
-# Phase 2B packages only the deliberately unavailable synthesizer driver.
-pythonSources: list[str] = ["addon/synthDrivers/nvdaPiperDriver.py"]
+# Phase 2E packages the deliberately unavailable driver and pure job-conversion support.
+pythonSources: list[str] = [
+	"addon/synthDrivers/nvdaPiperDriver.py",
+	"addon/synthDrivers/_nvdaPiperDriver/*.py",
+]
 i18nSources: list[str] = ["buildVars.py"]
 
 # Markdown is a build input; only generated HTML belongs in the package.

@@ -9,6 +9,9 @@ import os
 
 import synthDriverHandler
 
+from synthDrivers._nvdaPiperDriver.conversion import SpeechJobConverter
+from synthDrivers._nvdaPiperDriver.jobs import SpeechJob
+
 
 _TEST_ONLY_MARKER_ENV = "NVDA_PIPER_DRIVER_TEST_ONLY_MOCK_RUNTIME"
 _TEST_ONLY_MARKER_VALUE = "phase-2c-explicit-local-mock-runtime-6f4d1c8a"
@@ -28,7 +31,7 @@ def _isMockRuntimeAvailable() -> bool:
 
 
 class SynthDriver(synthDriverHandler.SynthDriver):
-	"""Test-only Phase 2D lifecycle and settings integration fixture."""
+	"""Test-only Phase 2E lifecycle, settings, and conversion fixture."""
 
 	name = "nvdaPiperDriver"
 	description = "NVDA Piper Driver"
@@ -48,6 +51,7 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		self._state = _MockLifecycleState.INITIALIZING
 		self._voice = _MOCK_VOICE_ID
 		self._rate = _DEFAULT_RATE
+		self._jobConverter = SpeechJobConverter()
 		super().__init__()
 		self._state = _MockLifecycleState.READY
 
@@ -84,6 +88,14 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 			raise ValueError("rate must be between 0 and 100")
 		self._rate = value
 
+	def _createSpeechJob(self, speechSequence: list[object]) -> SpeechJob:
+		"""Convert one sequence without retaining it or submitting it for execution."""
+		self._requireReady()
+		voiceId = self.voice
+		if voiceId not in self.availableVoices:
+			raise LookupError("active voice ID is invalid")
+		return self._jobConverter.convert(speechSequence, voiceId=voiceId, rate=self.rate)
+
 	def terminate(self) -> None:
 		"""Run NVDA's base cleanup at most once; this fixture owns no runtime resources."""
 		if self._state is _MockLifecycleState.TERMINATED:
@@ -97,4 +109,4 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		"""Reject speech without inspecting its content or changing lifecycle state."""
 		if self._state is _MockLifecycleState.TERMINATED:
 			raise RuntimeError("NVDA Piper Driver is terminated")
-		raise RuntimeError("Phase 2D has no speech implementation")
+		raise RuntimeError("Phase 2E has no speech implementation")

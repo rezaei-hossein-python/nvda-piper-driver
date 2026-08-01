@@ -1,5 +1,7 @@
 # Speech-job model
 
+> Phase 2E implements only the immutable conversion subset documented in `speech-job-conversion.md`: identity, ordered items, mock voice/rate snapshots, and strict failure behavior. Queueing, cancellation tokens, outcomes, timestamps, model identity, chunking, worker events, and completion remain proposed and unimplemented.
+
 ## Purpose
 
 An immutable `SpeechJob` captures one accepted NVDA `SpeechSequence` without retaining mutable driver settings. Names below are conceptual data fields, not production APIs.
