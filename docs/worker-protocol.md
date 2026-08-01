@@ -1,5 +1,7 @@
 # Proposed worker protocol
 
+> Phase 2F implements only the bounded synchronous subset in `fake-worker-protocol.md`: hello, submit acknowledgement, error, and shutdown messages using direct in-process calls. It provides no child process, IPC transport, model/runtime, streaming, PCM, cancellation, notification, health, or timing evidence. This broader design and the runtime ADR remain Proposed.
+
 ## Status and boundary
 
 The worker is Proposed and benchmark-dependent. NVDA owns one child process; the child never listens on a network interface, launches commands, accesses arbitrary paths, or outlives its parent intentionally. Native runtime/model parsing occurs behind this crash boundary, but the worker is not trusted to send well-formed data.

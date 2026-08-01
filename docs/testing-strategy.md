@@ -33,6 +33,8 @@ Phase 2D extends only that isolated layer. Tests require exactly the initializin
 
 Phase 2E adds pure tests for frozen job/item records, exact list input, exact driver-facing command types, text fidelity including Persian and Unicode controls, command-field preservation, malformed and unsupported inputs, failure-atomic counters, identifier exhaustion, settings snapshots, and lifecycle gating. Narrow command stubs mirror the pinned field contracts without importing the full NVDA application. These tests do not establish synthesis safety or runtime support for any represented command.
 
+Phase 2F tests immutable protocol values, deterministic UTF-8 JSON, explicit item schemas, frame/depth/text/phoneme bounds, malformed encoding/JSON and duplicate keys, non-finite numbers, handshake/session/sequence invariants, request/job correlation and duplication, metadata-only retention, state-error behavior, and irreversible fake shutdown. These synchronous tests contain no IPC, timing, process, PCM, or audio evidence.
+
 ### Accessibility acceptance
 
 Execute `docs/accessibility-acceptance-criteria.md` with keyboard and NVDA: focus/order/names/states, validation and recovery, manual model import, progress/cancel, first run, restart prompts, help navigation, localization, and announcement rate.

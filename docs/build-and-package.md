@@ -4,7 +4,7 @@
 
 Phase 2A uses NV Access [AddonTemplate](https://github.com/nvaccess/AddonTemplate) commit `44fb08643974f8d30791cebe36254474251ef162`, inspected 2026-08-01, as the structural and SCons reference. The live NV Access [add-on development links](https://github.com/nvaccess/nvda/blob/master/projectDocs/dev/addons.md), [Store submission guide](https://github.com/nvaccess/addon-datastore/blob/master/docs/submitters/submissionGuide.md), [API-version data](https://github.com/nvaccess/addon-datastore/blob/master/transform/nvdaAPIVersions.json), and AddonTemplate [localization guide](https://github.com/nvaccess/AddonTemplate/blob/master/docs/l10n/addonAuthors.md) were checked on the same date.
 
-Phase 2E adds only the underscore-prefixed private support package documented in `docs/speech-job-conversion.md`. Pinned NVDA `getSynthList` skips module names beginning with `_`, so it is not a separate driver. The main driver remains unavailable by default; `speak()` still raises without converting or inspecting its argument. Jobs returned through the private conversion boundary are immutable and are not queued or executed. The package has no usable synthesizer, protocol, runtime, worker, audio code, model support, native dependency, or network behavior. Building or installing it does not validate the Proposed runtime ADR and does not imply Add-on Store acceptance.
+Phase 2F adds `protocol.py` and `fakeWorker.py` to the underscore-prefixed private support package. Pinned NVDA `getSynthList` skips module names beginning with `_`, so it is not a separate driver. The fake worker is synchronous and in-process, with no transport or subprocess; the main driver neither owns it nor connects `speak()` to it. The package has no usable synthesizer, runtime, model, PCM, audio code, native dependency, or network behavior. Building or installing it does not validate the Proposed runtime ADR and does not imply Add-on Store acceptance.
 
 Generated Python bytecode and `__pycache__` directories are explicitly excluded from packaging. This keeps the archive allowlist valid even when a local syntax check or isolated import has populated a source-adjacent cache.
 
@@ -72,6 +72,11 @@ The complete allowlist is:
 ```text
 manifest.ini
 doc/en/readme.html
+synthDrivers/_nvdaPiperDriver/__init__.py
+synthDrivers/_nvdaPiperDriver/conversion.py
+synthDrivers/_nvdaPiperDriver/fakeWorker.py
+synthDrivers/_nvdaPiperDriver/jobs.py
+synthDrivers/_nvdaPiperDriver/protocol.py
 synthDrivers/nvdaPiperDriver.py
 ```
 
@@ -81,17 +86,17 @@ Inspect it without extracting:
 .\.venv\Scripts\python.exe -c "import zipfile; z=zipfile.ZipFile('nvdaPiperDriver-0.1.0.nvda-addon'); print('\n'.join(z.namelist()))"
 ```
 
-Run source and archive checks after building:
+Run the full source and archive checks after building:
 
 ```powershell
 $env:NVDA_ADDON_PACKAGE = (Resolve-Path 'nvdaPiperDriver-0.1.0.nvda-addon').Path
-.\.venv\Scripts\python.exe -m unittest tests.test_package_metadata tests.test_unavailable_driver
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 Remove-Item Env:NVDA_ADDON_PACKAGE
 ```
 
-The checks require the exact allowlist, required manifest fields, valid internal name/version, generated help, exactly one permitted Python driver source, safe archive paths, and no forbidden dependency or binary member. The driver has a separate isolated test using a narrow `synthDriverHandler.SynthDriver` stub.
+The checks require the exact allowlist, required manifest fields, valid internal name/version, generated help, the exact permitted Python sources, safe archive paths, and no forbidden dependency or binary member. The driver has a separate isolated test using a narrow `synthDriverHandler.SynthDriver` stub; protocol and fake-worker tests import the private support package directly.
 
-Repository design documents, imported documentation, pinned NVDA source, tests, Git metadata, caches, local environments, runtime/worker files, binaries, models, audio, and every Python source other than `synthDrivers/nvdaPiperDriver.py` are intentionally excluded.
+Repository design documents, imported documentation, pinned NVDA source, tests, Git metadata, caches, local environments, binaries, models, and audio are intentionally excluded. Only the unavailable driver and its private pure Python conversion/protocol support are packaged.
 
 ## Safe NVDA installation testing
 

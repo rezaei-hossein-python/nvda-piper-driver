@@ -25,5 +25,6 @@ The project has not released a public version.
 - An exact, process-local, test-only availability gate for isolated discovery, construction, and termination validation.
 - A three-state mock lifecycle, one explicitly non-speaking mock voice, and a bounded in-memory rate fixture for NVDA settings-boundary validation.
 - Pure conversion of pinned driver-facing NVDA sequence items into immutable, ordered speech-job records with deterministic in-memory identifiers.
+- A bounded, strict-JSON protocol model and synchronous in-process fake worker for handshake, correlation, validation, controlled errors, and shutdown tests.
 
-The driver remains unavailable in normal use and `speak()` produces no speech when the development gate is enabled. Converted jobs are returned only through a private internal boundary and are neither retained nor executed. No worker, protocol, Piper runtime, audio implementation, runtime binary, or voice model has been added. The package is not a public release and has not been submitted to the Add-on Store.
+The driver remains unavailable in normal use and `speak()` produces no speech when the development gate is enabled. The Phase 2F fake worker is synchronous and in-process: it has no subprocess or IPC transport and neither retains nor executes jobs. No Piper runtime, model, PCM, audio implementation, runtime binary, cancellation, or notification behavior has been added. The package is not a public release and has not been submitted to the Add-on Store.

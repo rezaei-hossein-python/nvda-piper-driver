@@ -2,13 +2,13 @@
 
 ## Development status
 
-This development-validation package contains a minimal synthesizer-driver module with a controlled test-only availability gate. It is unavailable by default and normal users cannot enable it through add-on settings. In controlled test mode it exposes only a fixed `Mock Voice — No Speech` entry, an in-memory rate fixture, and a private pure speech-sequence converter. The converter does not queue or execute jobs, and `speak()` remains unavailable. The package includes no Piper runtime, worker, protocol, voice model, audio output, or model installation functionality.
+This development-validation package contains a minimal synthesizer-driver module with a controlled test-only availability gate. It is unavailable by default and normal users cannot enable it through add-on settings. Its private pure converter and bounded in-process fake protocol are disconnected from `speak()`. The fake worker is not a process or IPC transport and does not queue or execute jobs. The package includes no Piper runtime, model, PCM, audio output, cancellation, notification, or model installation functionality.
 
 There is no public release. This package is not intended for everyday use and does not indicate acceptance by the NVDA Add-on Store.
 
 ## Project purpose
 
-The project intends to provide offline NVDA speech using separately verified Piper-compatible neural voices. Implementation has not progressed beyond packaging and controlled mock discovery, lifecycle, settings, and immutable sequence-conversion testing.
+The project intends to provide offline NVDA speech using separately verified Piper-compatible neural voices. Implementation has not progressed beyond packaging and controlled mock discovery, lifecycle, settings, immutable conversion, and in-process protocol validation.
 
 ## Installation status
 

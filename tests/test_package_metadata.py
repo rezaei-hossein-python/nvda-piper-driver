@@ -15,7 +15,9 @@ EXPECTED_ARCHIVE_FILES = {
 	"manifest.ini",
 	"synthDrivers/_nvdaPiperDriver/__init__.py",
 	"synthDrivers/_nvdaPiperDriver/conversion.py",
+	"synthDrivers/_nvdaPiperDriver/fakeWorker.py",
 	"synthDrivers/_nvdaPiperDriver/jobs.py",
+	"synthDrivers/_nvdaPiperDriver/protocol.py",
 	"synthDrivers/nvdaPiperDriver.py",
 }
 FORBIDDEN_EXTENSIONS = {".dll", ".exe", ".nvda-addon", ".onnx", ".pyc", ".wav"}

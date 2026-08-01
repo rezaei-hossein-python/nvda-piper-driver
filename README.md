@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2E immutable speech-job conversion is implemented for development testing only.** The driver remains unavailable by default and becomes selectable only when an exact process-local test marker is supplied. Its private converter can copy supported NVDA sequence items into immutable records, but `speak()` does not call it. No job is queued or executed, and no speech is produced.
+**Phase 2F bounded protocol validation is implemented with an in-process fake worker for development testing only.** The driver remains unavailable by default, and `speak()` is disconnected from both jobs and protocol. The fake worker has no subprocess, transport, runtime, model, PCM, audio, or synthesis behavior.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2E established packaging, an unavailable-by-default driver, the test-only availability gate, mock lifecycle/settings, and pure conversion. Phase 2F—a fake-worker protocol prototype with no real TTS—is the sole next milestone.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2F established packaging, the unavailable-by-default driver, mock lifecycle/settings, immutable jobs, and a synchronous fake protocol boundary. Phase 2G—mock cancellation and stale-generation behavior—is the sole next milestone.
 
 ## Why this project exists
 
@@ -100,6 +100,7 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/mock-runtime-availability.md`](docs/mock-runtime-availability.md)
 - [`docs/mock-lifecycle-and-settings.md`](docs/mock-lifecycle-and-settings.md)
 - [`docs/speech-job-conversion.md`](docs/speech-job-conversion.md)
+- [`docs/fake-worker-protocol.md`](docs/fake-worker-protocol.md)
 - [`docs/research-source-register.md`](docs/research-source-register.md)
 - [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)

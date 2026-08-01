@@ -69,17 +69,19 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2F — Fake-worker protocol prototype
 
-**Next milestone. Do not start other Phase 2 work concurrently.**
+**Complete. Phase 2G is the sole next milestone.**
 
-- **Objective:** implement framed IPC/session/handshake using a fake child.
-- **Allowed:** protocol/client/process abstractions, fake executable/script used only in tests, serialization tests.
-- **Forbidden:** Piper/ORT/model/audio integration.
-- **Tests:** handshake, limits, malformed data, crash/hang, parent death, shutdown/orphan, version matrix.
-- **Manual:** inspect process lifetime/handles on Windows; NVDA remains responsive.
-- **Docs/commit:** record measured prototype limits as experimental; `Prototype bounded worker protocol with fake worker`.
-- **Exit:** no shell/listener/orphan, bounded failure behavior. Stop.
+- **Objective:** validate bounded serialization, immutable envelopes, session/handshake, correlation, controlled errors, and shutdown with a synchronous in-process fake worker.
+- **Allowed:** pure protocol values, strict standard-library serialization, direct fake-worker state machine, and focused unit tests.
+- **Forbidden:** subprocesses, IPC or transport abstractions, threads, queues, Piper/ORT/model/audio integration, cancellation, and driver speech integration.
+- **Tests:** message/item round trips, limits, malformed frames, handshake, strict sequencing, duplicate detection, metadata-only retention, and irreversible shutdown.
+- **Manual:** inspect source/archive boundaries; real NVDA validation is unnecessary because `SynthDriver.speak()` remains disconnected.
+- **Docs/commit:** record provisional prototype limits without accepting the worker architecture; `Prototype bounded worker protocol with fake worker`.
+- **Exit:** deterministic in-process behavior with no speech, process, transport, runtime, model, PCM, or audio. Stop.
 
 ## Phase 2G — Cancellation and stale-generation behavior
+
+**Next milestone. Do not start other Phase 2 work concurrently.**
 
 - **Objective:** prove generation invalidation end to end with fake worker/audio.
 - **Allowed:** controller/job/protocol fake-player integration and stress tests.

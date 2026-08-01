@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Phase 2E complete — supported NVDA sequence items can be copied into immutable internal jobs, but `speak()` does not invoke conversion and no job is queued or executed. Next: Phase 2F, a fake-worker protocol prototype. No speech, Piper runtime, or public release exists.**
+**Phase 2F complete — a bounded strict-JSON protocol and synchronous in-process fake worker validate handshake, correlation, errors, and shutdown without transport or execution. Next: Phase 2G, mock cancellation and stale-generation behavior. No speech, Piper runtime, or public release exists.**
 
 ## Milestones
 
@@ -24,7 +24,8 @@
 - [x] Phase 2C: prove controlled discovery and base-only lifecycle with an exact test marker.
 - [x] Phase 2D: prove minimal lifecycle and settings initialization with mocks.
 - [x] Phase 2E: prove immutable, ordered, privacy-preserving speech-job conversion.
-- [ ] Phase 2F–2G: prove protocol, cancellation, and stale rejection with mocks.
+- [x] Phase 2F: prove bounded protocol, fake handshake, sequencing, correlation, errors, and shutdown in process.
+- [ ] Phase 2G: prove cancellation and stale rejection with mocks.
 - [ ] Phase 2H–2J: integrate a verified standalone runtime, first NVDA audio, cancellation, indexes, and completion.
 - [x] Make the unavailable driver module discoverable by NVDA's loader while excluding it from selection.
 - [ ] Select and validate a Piper runtime integration.

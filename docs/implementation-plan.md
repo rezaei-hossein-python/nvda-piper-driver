@@ -78,13 +78,13 @@ Exit criteria:
 - Phase 2 can proceed milestone by milestone without inventing architecture in code;
 - the runtime ADR remains Proposed; at Phase 1C completion, implementation had not begun.
 
-See `docs/phase-2-implementation-sequence.md`. Phases 2A–2E are complete; the immediate next milestone is Phase 2F only.
+See `docs/phase-2-implementation-sequence.md`. Phases 2A–2F are complete; the immediate next milestone is Phase 2G only.
 
 ## Phase 2 — Minimal add-on and driver skeleton
 
 This summary is superseded for execution by the separate Phase 2A–2J stop-gated sequence. Do not combine its milestones.
 
-Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver. Phase 2C added an exact test-only availability gate. Phase 2D added only mock lifecycle/settings behavior. Phase 2E added pure immutable speech-job conversion, but `speak()` does not invoke it and no job is retained or executed. Phase 2F may add only a fake-worker protocol prototype; no Piper runtime exists.
+Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver. Phase 2C added the exact test-only gate, Phase 2D mock lifecycle/settings, and Phase 2E immutable jobs. Phase 2F added only strict serialization and a synchronous in-process fake-worker state machine; there is no subprocess, transport, job execution, or Piper runtime. Phase 2G may add only mock cancellation and stale-generation behavior.
 
 Deliverables:
 
