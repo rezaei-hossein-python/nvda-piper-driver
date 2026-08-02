@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Phase 2G complete — synchronous in-process tests validate bounded cancellation state and metadata-only stale-result rejection without execution, timing, audio, notifications, or driver integration. Next: Phase 2H, verified standalone Piper synthesis outside NVDA. No working NVDA speech or public release exists.**
+**Phases 2G and 2H are complete: cancellation remains fake-only, while a verified runtime produced measured standalone audio outside NVDA. Phase 2I is not started or implicitly approved. No working NVDA speech or public release exists.**
 
 ## Milestones
 
@@ -26,7 +26,8 @@
 - [x] Phase 2E: prove immutable, ordered, privacy-preserving speech-job conversion.
 - [x] Phase 2F: prove bounded protocol, fake handshake, sequencing, correlation, errors, and shutdown in process.
 - [x] Phase 2G: prove bounded synchronous cancellation and stale fake-result rejection with mocks.
-- [ ] Phase 2H–2J: integrate a verified standalone runtime, first NVDA audio, cancellation, indexes, and completion.
+- [x] Phase 2H: complete verified, language-neutral standalone Piper synthesis and measurements outside NVDA.
+- [ ] Phase 2I–2J: only after Phase 2H, consider first controlled NVDA audio, cancellation, indexes, and completion.
 - [x] Make the unavailable driver module discoverable by NVDA's loader while excluding it from selection.
 - [ ] Select and validate a Piper runtime integration.
 - [ ] Speak the first plain-text utterance.

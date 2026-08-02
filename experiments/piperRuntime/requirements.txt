@@ -1,0 +1,3 @@
+# Windows x64 wheel SHA-256 (recorded separately because transitive dependencies
+# are not yet locked): d05f0985143f180046d2765eed505a1f5ea1fc30cee4c9c18edb68ef58cce204
+piper-tts==1.5.0

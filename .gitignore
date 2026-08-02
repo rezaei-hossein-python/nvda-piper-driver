@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 .env
 .venv/
+.phase2h-runtime/
+.phase2h-assets/
+.phase2h-output/
 venv/
 build/
 dist/

@@ -2,9 +2,11 @@
 
 ## Status: Proposed
 
+Phase 2H evidence (2026-08-01) does not change this status. After interactive installation of Microsoft Visual C++ x64 runtime 14.51.36247.0, `piper-tts` 1.5.0 and ONNX Runtime 1.28.0 loaded a provenance-checked voice through `CPUExecutionProvider`. Standalone model load, sentence-chunk, completion, RTF, sampled CPU/memory, controlled failures, generator stop, and mono 16-bit WAV structure were measured. These results do not cover NVDA, IPC, playback, active-inference cancellation, crash containment, multi-model compatibility, or redistribution. See `standalone-piper-runtime-results.md` and `piper-component-inventory.md`.
+
 ## Context
 
-NVDA speech is interruption-sensitive. The pinned source (`references/nvda-source/source/speech/manager.py`, `SpeechManager`; `source/synthDriverHandler.py`, `SynthDriver`) requires index/completion signalling and accounts for late events after cancellation. Neural inference and model loading must not block NVDA. Current Piper embeds native ONNX Runtime and eSpeak NG components; a native failure inside NVDA would affect the screen reader. No project-local performance measurements exist.
+NVDA speech is interruption-sensitive. The pinned source (`references/nvda-source/source/speech/manager.py`, `SpeechManager`; `source/synthDriverHandler.py`, `SynthDriver`) requires index/completion signalling and accounts for late events after cancellation. Neural inference and model loading must not block NVDA. Current Piper embeds native ONNX Runtime and eSpeak NG components; a native failure inside NVDA would affect the screen reader. Phase 2H provides standalone measurements only, not NVDA or audio-pipeline evidence.
 
 ## Decision drivers
 

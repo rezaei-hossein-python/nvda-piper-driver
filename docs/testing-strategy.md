@@ -37,6 +37,8 @@ Phase 2F tests immutable protocol values, deterministic UTF-8 JSON, explicit ite
 
 Phase 2G adds deterministic synchronous loops for contiguous generation progression, idempotent cancellation, stale/cancelled/unknown/duplicate fake-result statuses, atomic request/generation/job/result/cancellation tracking limits, privacy, and shutdown. Fake results contain numeric metadata only. The tests use no sleeps, clocks, threads, queues, transport, synthesis, audio, or performance claims.
 
+Phase 2H adds pure standalone adapter and benchmark tests for bounded path/config/text/output validation, Unicode preservation, optional metadata-driven speakers, content-free errors, structured metrics, WAV parsing, and network/language-hardcoding exclusions. One runtime/model-dependent test skips unless explicit local paths are supplied; with the hash-verified local model it passed model loading and real synthesis. The benchmark records one discarded warm-up, five runs per case, individual and min/median/max results, and structural WAV metadata. These tests do not establish NVDA, playback, or active-inference cancellation behavior.
+
 ### Accessibility acceptance
 
 Execute `docs/accessibility-acceptance-criteria.md` with keyboard and NVDA: focus/order/names/states, validation and recovery, manual model import, progress/cancel, first run, restart prompts, help navigation, localization, and announcement rate.

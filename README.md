@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2G mock cancellation and stale-generation invalidation are implemented for development testing only.** The protocol and fake worker remain synchronous and in-process; fake results are metadata-only test events. The driver remains unavailable by default, `speak()` stays disconnected, `cancel()` is not implemented, and no speech, NVDA notification, PCM, audio, model, runtime, subprocess, or transport exists.
+**Phase 2H standalone runtime verification is complete.** The language-neutral experiment loaded a verified Piper voice, produced a structurally valid WAV, and recorded standalone measurements after installing the required Microsoft Visual C++ runtime. This does not prove screen-reader suitability or accept the Proposed runtime architecture. The experiment remains outside the add-on and driver; `speak()` stays disconnected, `cancel()` is not implemented, and no NVDA speech, notification, PCM, audio, model, runtime, subprocess, or transport was added to the package.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2G established packaging, the unavailable-by-default driver, mock lifecycle/settings, immutable jobs, bounded protocol validation, and synchronous cancellation-state tests. Phase 2H—verified standalone Piper synthesis outside NVDA—is the sole next milestone.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2G established packaging, the unavailable-by-default driver, mock lifecycle/settings, immutable jobs, bounded protocol validation, and synchronous cancellation-state tests. Phase 2H verified one compatible voice outside NVDA without prioritizing a language; Persian is not a special path. Phase 2I may be considered separately but is not started or implicitly approved.
 
 ## Why this project exists
 

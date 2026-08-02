@@ -1,5 +1,7 @@
 # Model and voice management
 
+Phase 2H validates model-path-driven design with one manually supplied `en_US-lessac-low` asset, but synthesis did not complete. That voice is a validation asset only, not a product default or redistribution candidate. The future product target remains any technically compatible Piper voice after model/config/schema, checksum, licence, dataset, speaker-rights, and runtime checks. Locale is descriptive metadata, not an allowlist; no language is prioritized and Persian has no special path.
+
 ## Component separation
 
 1. **Driver:** NVDA adapter, settings, job/audio lifecycle; no model parsing beyond safe catalogue metadata.

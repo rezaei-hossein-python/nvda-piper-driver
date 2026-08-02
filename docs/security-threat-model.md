@@ -6,6 +6,8 @@
 
 > Phase 2G bounds request, generation, job, cancellation, and fake-result metadata and rejects stale/cancelled results without storing their payload because fake results contain IDs only. This is deterministic state validation, not evidence of real cancellation, timing, IPC security, audio safety, or NVDA notification correctness.
 
+> Phase 2H's experiment accepts only explicit local model/config/output paths, bounds text and file sizes, refuses implicit overwrite, performs no download or network access, and reports errors without text or paths. The two approved model downloads and dependency installation were manual verification actions, not adapter behavior. An Authenticode-verified Visual C++ prerequisite resolved native loading, but native model parsing, DLL servicing, dependency provenance, and eventual process containment remain security boundaries.
+
 ## Scope, assets, and boundaries
 
 This is defensive design, not certification or legal clearance. Assets: NVDA availability, user text, local files/configuration/models, audio privacy/integrity, process and release integrity, and user trust. Boundaries: NVDA core ↔ add-on; add-on ↔ child IPC; worker ↔ native Piper/eSpeak/ONNX Runtime; runtime ↔ model/config; managed data ↔ temporary storage; repository/release pipeline ↔ installed asset; and a future downloader ↔ network/catalogue. Secure-screen use is unsupported.

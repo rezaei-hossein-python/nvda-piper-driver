@@ -93,7 +93,7 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2H — Verified Piper standalone synthesis
 
-**Next milestone. Do not start other Phase 2 work concurrently.**
+**Complete as a standalone experiment. Phase 2I requires separate approval and is not started.**
 
 - **Objective:** integrate and benchmark one verified Piper runtime for standalone synthesis outside NVDA, without connecting it to the NVDA driver.
 - **Allowed:** pinned dependency acquisition/build design, inventory/notices/SBOM, standalone worker backend and marked tests.
@@ -104,6 +104,8 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 - **Exit:** reproducible offline standalone synthesis and unresolved redistribution issues explicitly block packaging. Stop.
 
 ## Phase 2I — First speech inside NVDA
+
+This phase may connect the verified runtime boundary to the controlled development driver in a safe disposable NVDA environment. Phase 2H completion does not itself approve this work.
 
 - **Objective:** feed verified PCM through the selected current NVDA-compatible audio path for plain text.
 - **Allowed:** narrow audio adapter and plain-text integration.

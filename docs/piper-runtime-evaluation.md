@@ -1,5 +1,7 @@
 # Phase 1B: Piper runtime evaluation
 
+Phase 2H update (2026-08-01): after installing the verified Microsoft Visual C++ x64 prerequisite, OHF `piper-tts` 1.5.0 and ONNX Runtime 1.28.0 completed standalone model loading, real WAV synthesis, and repeatable measurements through the Python API. This evidence does not measure NVDA, IPC, playback, or active-inference cancellation and does not accept an architecture. See `standalone-piper-runtime-results.md`; comparative scores remain provisional.
+
 ## Scope and evidence
 
 This is architectural research, not a benchmark report. It was last checked on 2026-08-01. The pinned NVDA reference is commit `e98b2a14cbc166294b0bbbb15fe4295cd2e4dd61` (`docs/imported/source-notes.md`). Current Piper development is in [OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl); the repository documents a Python API, CLI, C/C++ API, embedded eSpeak NG phonemization, and GPL-3.0 licensing. The former [rhasspy/piper](https://github.com/rhasspy/piper) repository was archived on 2025-10-06 and points to that successor. ONNX Runtime deployment details come from Microsoft's [official documentation](https://onnxruntime.ai/docs/install/) and [licence](https://github.com/microsoft/onnxruntime/blob/main/LICENSE).
