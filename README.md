@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2H standalone runtime verification is complete.** The language-neutral experiment loaded a verified Piper voice, produced a structurally valid WAV, and recorded standalone measurements after installing the required Microsoft Visual C++ runtime. This does not prove screen-reader suitability or accept the Proposed runtime architecture. The experiment remains outside the add-on and driver; `speak()` stays disconnected, `cancel()` is not implemented, and no NVDA speech, notification, PCM, audio, model, runtime, subprocess, or transport was added to the package.
+**Phase 2I development integration is complete.** A narrowly gated driver converted one immutable job, invoked the verified Phase 2H runtime in a one-shot child process, validated complete-buffer mono PCM, and produced audible speech through portable NVDA's current `WavePlayer`. Switching back to eSpeak and clean shutdown also succeeded. This remains synchronous, cold-loads each utterance, and is not suitable for everyday screen-reader use. Piper, ONNX Runtime, models, WAV files, and the development environment remain outside the add-on; Phase 2J has not begun.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2G established packaging, the unavailable-by-default driver, mock lifecycle/settings, immutable jobs, bounded protocol validation, and synchronous cancellation-state tests. Phase 2H verified one compatible voice outside NVDA without prioritizing a language; Persian is not a special path. Phase 2I may be considered separately but is not started or implicitly approved.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2G established packaging, controlled discovery, immutable jobs, bounded protocol validation, and synchronous cancellation-state tests. Phase 2H verified one compatible voice outside NVDA without prioritizing a language. Phase 2I adds only the first controlled portable-NVDA speech path; no language is special and Phase 2J has not begun.
 
 ## Why this project exists
 
@@ -102,13 +102,16 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/speech-job-conversion.md`](docs/speech-job-conversion.md)
 - [`docs/fake-worker-protocol.md`](docs/fake-worker-protocol.md)
 - [`docs/mock-cancellation-and-generations.md`](docs/mock-cancellation-and-generations.md)
+- [`docs/standalone-piper-runtime-results.md`](docs/standalone-piper-runtime-results.md)
+- [`docs/first-nvda-piper-speech.md`](docs/first-nvda-piper-speech.md)
+- [`docs/portable-nvda-validation.md`](docs/portable-nvda-validation.md)
 - [`docs/research-source-register.md`](docs/research-source-register.md)
 - [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)
 
 ## Contributing
 
-This project is in an early mock-driven implementation phase with no working speech runtime. Contributions should be narrowly scoped, documented, and based on current NVDA interfaces. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+This project is in an early development-validation phase with only a synchronous portable-NVDA speech prototype. Contributions should be narrowly scoped, documented, and based on current NVDA interfaces. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Licence
 

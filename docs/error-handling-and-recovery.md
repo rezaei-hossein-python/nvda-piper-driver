@@ -1,5 +1,7 @@
 # Error handling and recovery
 
+> Phase 2I exposes only fixed, content-free development bridge failures. Invalid explicit paths keep the driver unavailable; malformed/stale/oversized child output is rejected; timeout or teardown terminates the child. Accessible recovery UI, automatic restart policy, and device recovery are not implemented.
+
 > Phase 2G implements only bounded fake-worker generation errors and metadata-only result statuses. It performs no retry, timeout, restart, audible cancellation, driver recovery, or user notification.
 
 ## Policy

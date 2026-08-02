@@ -1,5 +1,7 @@
 # Driver state machine
 
+> Phase 2I retains the existing initializing/ready/terminated driver lifecycle and adds one owned one-shot child plus `WavePlayer`. `cancel()` is teardown only: invalidate current PCM, stop playback, and terminate the child. The broader responsive state machine below remains a design target for Phase 2J and later.
+
 > This document remains the proposed production model. Phase 2D implements only private `initializing`, `ready`, and `terminated` mock states, with none of the runtime meanings or resources described below. See `mock-lifecycle-and-settings.md`.
 
 > Phase 2G validates only synchronous in-process generation and cancellation metadata in the fake worker. It does not implement this controller state machine, driver `cancel()`, audio stopping, timing, or NVDA notifications. The runtime ADR remains Proposed.

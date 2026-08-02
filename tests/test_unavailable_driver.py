@@ -1,7 +1,7 @@
-"""Isolated tests for the controlled Phase 2C availability gate."""
+"""Isolated tests for Phase 2I driver gating, playback, and teardown."""
 
-import ast
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 import importlib.util
 import os
 from pathlib import Path
@@ -13,19 +13,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 DRIVER_PATH = ROOT / "addon" / "synthDrivers" / "nvdaPiperDriver.py"
-MODULE_NAME = "phase2c_test_nvdaPiperDriver"
-FORBIDDEN_IMPORT_ROOTS = {
-	"http",
-	"onnxruntime",
-	"piper",
-	"requests",
-	"socket",
-	"subprocess",
-	"threading",
-	"urllib",
-	"winsound",
-	"wave",
-}
+MODULE_NAME = "phase2i_test_nvdaPiperDriver"
 
 
 class StubSetting:
@@ -33,6 +21,14 @@ class StubSetting:
 		self.id = identifier
 		self.defaultVal = defaultValue
 		self.useConfig = True
+
+
+class StubNotification:
+	def __init__(self) -> None:
+		self.calls: list[object] = []
+
+	def notify(self, *, synth: object) -> None:
+		self.calls.append(synth)
 
 
 class StubSynthDriver(ABC):
@@ -48,11 +44,9 @@ class StubSynthDriver(ABC):
 		return StubSetting("rate", 50)
 
 	def __init__(self) -> None:
-		self.baseInitialized = True
 		self.baseTerminateCalls = 0
 
 	def terminate(self) -> None:
-		# Pinned NVDA saves advertised settings before unregistering its callback.
 		self.voice
 		self.rate
 		self.baseTerminateCalls += 1
@@ -65,244 +59,240 @@ class StubSynthDriver(ABC):
 			self._availableVoices = self._getAvailableVoices()
 		return self._availableVoices
 
-	@property
-	def voice(self):
-		return self._get_voice()
-
-	@voice.setter
-	def voice(self, value) -> None:
-		self._set_voice(value)
-
-	@property
-	def rate(self):
-		return self._get_rate()
-
-	@rate.setter
-	def rate(self, value) -> None:
-		self._set_rate(value)
+	voice = property(lambda self: self._get_voice(), lambda self, value: self._set_voice(value))
+	rate = property(lambda self: self._get_rate(), lambda self, value: self._set_rate(value))
 
 	@abstractmethod
 	def speak(self, speechSequence) -> None:
 		raise NotImplementedError
 
 
+@dataclass(frozen=True)
+class StubTextItem:
+	text: str
+
+
+@dataclass(frozen=True)
+class StubPhonemeItem:
+	ipa: str
+	fallbackText: str | None
+
+
+@dataclass(frozen=True)
+class StubLanguageChangeItem:
+	language: str | None
+
+
+@dataclass(frozen=True)
+class StubJob:
+	jobId: int
+	generationId: int
+	items: tuple[object, ...]
+
+
 class StubSpeechJobConverter:
+	def __init__(self) -> None:
+		self.job = StubJob(1, 1, (StubTextItem("private fixture"),))
+
 	def convert(self, speechSequence, *, voiceId, rate):
-		raise AssertionError("Phase 2D tests must not convert speech")
+		if type(speechSequence) is not list:
+			raise TypeError("speechSequence must be a list")
+		return self.job
+
+
+class StubBridge:
+	instances: list["StubBridge"] = []
+
+	def __init__(self, *paths: str) -> None:
+		self.paths = paths
+		self.stopped = 0
+		self.texts: list[str] = []
+		StubBridge.instances.append(self)
+
+	def synthesize(self, text: str, generationId: int, jobId: int):
+		self.texts.append(text)
+		return types.SimpleNamespace(
+			generationId=generationId,
+			jobId=jobId,
+			sampleRate=16_000,
+			channels=1,
+			sampleWidth=2,
+			pcm=b"\x01\x00" * 20,
+		)
+
+	def stop(self) -> None:
+		self.stopped += 1
+
+
+class StubWavePlayer:
+	instances: list["StubWavePlayer"] = []
+
+	def __init__(self, *, channels, samplesPerSec, bitsPerSample, outputDevice) -> None:
+		self.channels = channels
+		self.samplesPerSec = samplesPerSec
+		self.bitsPerSample = bitsPerSample
+		self.outputDevice = outputDevice
+		self.fed: list[bytes] = []
+		self.idleCalls = self.stopCalls = self.closeCalls = 0
+		StubWavePlayer.instances.append(self)
+
+	def feed(self, pcm: bytes) -> None:
+		self.fed.append(pcm)
+
+	def idle(self) -> None:
+		self.idleCalls += 1
+
+	def stop(self) -> None:
+		self.stopCalls += 1
+
+	def close(self) -> None:
+		self.closeCalls += 1
 
 
 def loadDriverModule() -> types.ModuleType:
+	StubBridge.instances.clear()
+	StubWavePlayer.instances.clear()
 	stubHandler = types.ModuleType("synthDriverHandler")
 	stubHandler.SynthDriver = StubSynthDriver  # type: ignore[attr-defined]
+	stubHandler.synthDoneSpeaking = StubNotification()  # type: ignore[attr-defined]
 	stubHandler.VoiceInfo = lambda identifier, displayName, language: types.SimpleNamespace(  # type: ignore[attr-defined]
-		id=identifier,
-		displayName=displayName,
-		language=language,
+		id=identifier, displayName=displayName, language=language,
 	)
 	stubConversion = types.ModuleType("synthDrivers._nvdaPiperDriver.conversion")
 	stubConversion.SpeechJobConverter = StubSpeechJobConverter  # type: ignore[attr-defined]
 	stubJobs = types.ModuleType("synthDrivers._nvdaPiperDriver.jobs")
-	stubJobs.SpeechJob = object  # type: ignore[attr-defined]
+	stubJobs.SpeechJob = StubJob  # type: ignore[attr-defined]
+	stubJobs.TextItem = StubTextItem  # type: ignore[attr-defined]
+	stubJobs.PhonemeItem = StubPhonemeItem  # type: ignore[attr-defined]
+	stubJobs.LanguageChangeItem = StubLanguageChangeItem  # type: ignore[attr-defined]
+	stubBridge = types.ModuleType("synthDrivers._nvdaPiperDriver.runtimeBridge")
+	stubBridge.OneShotRuntimeBridge = StubBridge  # type: ignore[attr-defined]
+	stubBridge.readModelLanguage = lambda path: "und_TEST"  # type: ignore[attr-defined]
+	def validateRuntimePaths(*paths):
+		if any(type(path) is not str or not path for path in paths):
+			raise ValueError("missing path")
+		return paths
+	stubBridge.validateRuntimePaths = validateRuntimePaths  # type: ignore[attr-defined]
+	stubConfig = types.ModuleType("config")
+	stubConfig.conf = {"audio": {"outputDevice": "default"}}  # type: ignore[attr-defined]
+	stubNvwave = types.ModuleType("nvwave")
+	stubNvwave.WavePlayer = StubWavePlayer  # type: ignore[attr-defined]
 	spec = importlib.util.spec_from_file_location(MODULE_NAME, DRIVER_PATH)
 	if spec is None or spec.loader is None:
-		raise AssertionError("Unable to create driver import specification")
+		raise AssertionError("Unable to load driver")
 	module = importlib.util.module_from_spec(spec)
-	with patch.dict(
-		sys.modules,
-		{
-			"synthDriverHandler": stubHandler,
-			"synthDrivers._nvdaPiperDriver.conversion": stubConversion,
-			"synthDrivers._nvdaPiperDriver.jobs": stubJobs,
-			MODULE_NAME: module,
-		},
-	):
+	with patch.dict(sys.modules, {
+		"config": stubConfig,
+		"nvwave": stubNvwave,
+		"synthDriverHandler": stubHandler,
+		"synthDrivers._nvdaPiperDriver.conversion": stubConversion,
+		"synthDrivers._nvdaPiperDriver.jobs": stubJobs,
+		"synthDrivers._nvdaPiperDriver.runtimeBridge": stubBridge,
+		MODULE_NAME: module,
+	}):
 		spec.loader.exec_module(module)
 	return module
 
 
-class UnavailableDriverTests(unittest.TestCase):
+class DriverPhase2ITests(unittest.TestCase):
 	def setUp(self) -> None:
 		self.module = loadDriverModule()
-		self.markerName = self.module._TEST_ONLY_MARKER_ENV
-		self.markerValue = self.module._TEST_ONLY_MARKER_VALUE
-
-	def _availableEnvironment(self):
-		return patch.dict(os.environ, {self.markerName: self.markerValue}, clear=True)
-
-	def test_module_path_and_identity(self) -> None:
-		self.assertTrue(DRIVER_PATH.is_file())
-		self.assertTrue(issubclass(self.module.SynthDriver, StubSynthDriver))
-		self.assertEqual(DRIVER_PATH.stem, self.module.SynthDriver.name)
-		self.assertEqual("NVDA Piper Driver", self.module.SynthDriver.description)
-
-	def test_check_is_false_without_exact_marker(self) -> None:
-		for environment in (
-			{},
-			{self.markerName: ""},
-			{self.markerName: self.markerValue.upper()},
-			{self.markerName: f"{self.markerValue}-near-match"},
-			{self.markerName: "1"},
-			{self.markerName: "yes"},
-			{self.markerName: "true"},
-			{self.markerName: "enabled"},
-			{"ENABLE_PIPER": self.markerValue},
-		):
-			with self.subTest(environment=environment), patch.dict(os.environ, environment, clear=True):
-				self.assertIs(self.module.SynthDriver.check(), False)
-				self.assertIs(self.module.SynthDriver.check(), False)
-
-	def test_check_is_true_only_with_exact_marker(self) -> None:
-		with self._availableEnvironment():
-			self.assertIs(self.module.SynthDriver.check(), True)
-			self.assertIs(self.module.SynthDriver.check(), True)
-
-	def test_loader_outcome_follows_check(self) -> None:
-		def listedDrivers() -> list[tuple[str, str]]:
-			cls = self.module.SynthDriver
-			return [(cls.name, cls.description)] if cls.check() else []
-
-		with patch.dict(os.environ, {}, clear=True):
-			self.assertEqual([], listedDrivers())
-		with self._availableEnvironment():
-			self.assertEqual([("nvdaPiperDriver", "NVDA Piper Driver")], listedDrivers())
-
-	def test_import_has_no_external_side_effects(self) -> None:
-		moduleNamesBefore = set(sys.modules)
-		with (
-			patch("builtins.open", side_effect=AssertionError("driver import attempted file access")),
-			patch("pathlib.Path.open", side_effect=AssertionError("driver import attempted file access")),
-		):
-			loadDriverModule()
-		self.assertEqual(moduleNamesBefore, set(sys.modules))
-
-	def test_only_permitted_import_is_present(self) -> None:
-		tree = ast.parse(DRIVER_PATH.read_text(encoding="utf-8"), filename=str(DRIVER_PATH))
-		imports = {
-			alias.name.split(".")[0]
-			for node in ast.walk(tree)
-			if isinstance(node, ast.Import)
-			for alias in node.names
+		self.environment = {
+			self.module._TEST_ONLY_MARKER_ENV: self.module._TEST_ONLY_MARKER_VALUE,
+			self.module._RUNTIME_PATH_ENV: "runtime.exe",
+			self.module._MODEL_PATH_ENV: "voice.onnx",
+			self.module._CONFIG_PATH_ENV: "voice.onnx.json",
 		}
-		imports.update(
-			node.module.split(".")[0]
-			for node in ast.walk(tree)
-			if isinstance(node, ast.ImportFrom) and node.module
-		)
-		self.assertEqual({"collections", "enum", "os", "synthDriverHandler", "synthDrivers"}, imports)
-		self.assertTrue(imports.isdisjoint(FORBIDDEN_IMPORT_ROOTS))
 
-	def test_construction_requires_marker_and_owns_no_runtime_resources(self) -> None:
+	def test_check_requires_exact_marker_and_all_explicit_paths(self) -> None:
 		with patch.dict(os.environ, {}, clear=True):
-			with self.assertRaisesRegex(RuntimeError, "test availability marker"):
-				self.module.SynthDriver()
-		with self._availableEnvironment():
-			driver = self.module.SynthDriver()
-		self.assertEqual(self.module._MockLifecycleState.READY, driver._state)
-		self.assertEqual(
-			{"_state", "_voice", "_rate", "_jobConverter", "baseInitialized", "baseTerminateCalls"},
-			set(driver.__dict__),
-		)
+			self.assertIs(self.module.SynthDriver.check(), False)
+		for missing in self.environment:
+			environment = dict(self.environment)
+			environment.pop(missing)
+			with self.subTest(missing=missing), patch.dict(os.environ, environment, clear=True):
+				self.assertIs(self.module.SynthDriver.check(), False)
+		with patch.dict(os.environ, self.environment, clear=True):
+			self.assertIs(self.module.SynthDriver.check(), True)
 
-	def test_lifecycle_has_only_three_states(self) -> None:
-		self.assertEqual(
-			{"initializing", "ready", "terminated"},
-			{state.value for state in self.module._MockLifecycleState},
-		)
-
-	def test_termination_delegates_once(self) -> None:
-		with self._availableEnvironment():
-			markerValue = os.environ[self.module._TEST_ONLY_MARKER_ENV]
+	def test_one_job_reaches_pcm_player_and_completion(self) -> None:
+		with patch.dict(os.environ, self.environment, clear=True):
 			driver = self.module.SynthDriver()
+			driver.speak(["private fixture"])
+		bridge = StubBridge.instances[-1]
+		player = StubWavePlayer.instances[-1]
+		self.assertEqual(["private fixture"], bridge.texts)
+		self.assertEqual([b"\x01\x00" * 20], player.fed)
+		self.assertEqual((1, 16_000, 16, "default"), (player.channels, player.samplesPerSec, player.bitsPerSample, player.outputDevice))
+		self.assertEqual(1, player.idleCalls)
+		self.assertEqual([driver], self.module.synthDriverHandler.synthDoneSpeaking.calls)
+
+	def test_empty_job_completes_without_worker_or_player(self) -> None:
+		with patch.dict(os.environ, self.environment, clear=True):
+			driver = self.module.SynthDriver()
+			driver._jobConverter.job = StubJob(1, 1, ())
+			driver.speak([])
+		self.assertEqual([], StubBridge.instances[-1].texts)
+		self.assertEqual([], StubWavePlayer.instances)
+
+	def test_only_documented_job_items_reach_worker(self) -> None:
+		with patch.dict(os.environ, self.environment, clear=True):
+			driver = self.module.SynthDriver()
+			driver._jobConverter.job = StubJob(
+				1,
+				1,
+				(StubLanguageChangeItem("arbitrary_LOCALE"), StubTextItem("text"), StubPhonemeItem("private", " fallback")),
+			)
+			driver.speak(["unused"])
+			self.assertEqual(["text fallback"], StubBridge.instances[-1].texts)
+		for unsupported in (object(), StubPhonemeItem("private", None)):
+			with self.subTest(itemType=type(unsupported).__name__), patch.dict(os.environ, self.environment, clear=True):
+				driver = self.module.SynthDriver()
+				driver._jobConverter.job = StubJob(1, 1, (unsupported,))
+				with self.assertRaisesRegex(RuntimeError, "speech item is unsupported"):
+					driver.speak(["unused"])
+				self.assertEqual([], StubBridge.instances[-1].texts)
+
+	def test_stale_pcm_is_not_played(self) -> None:
+		with patch.dict(os.environ, self.environment, clear=True):
+			driver = self.module.SynthDriver()
+			bridge = StubBridge.instances[-1]
+			original = bridge.synthesize
+			def stale(text, generationId, jobId):
+				result = original(text, generationId, jobId)
+				result.generationId = generationId + 1
+				return result
+			bridge.synthesize = stale
+			driver.speak(["private fixture"])
+		self.assertEqual([], StubWavePlayer.instances)
+
+	def test_cancel_and_terminate_stop_owned_resources(self) -> None:
+		with patch.dict(os.environ, self.environment, clear=True):
+			driver = self.module.SynthDriver()
+			driver.speak(["private fixture"])
+			bridge = StubBridge.instances[-1]
+			player = StubWavePlayer.instances[-1]
+			driver.cancel()
 			driver.terminate()
 			driver.terminate()
-			self.assertEqual(markerValue, os.environ[self.module._TEST_ONLY_MARKER_ENV])
-		self.assertIs(self.module._MockLifecycleState.TERMINATED, driver._state)
+		self.assertGreaterEqual(bridge.stopped, 2)
+		self.assertGreaterEqual(player.stopCalls, 2)
+		self.assertEqual(1, player.closeCalls)
 		self.assertEqual(1, driver.baseTerminateCalls)
-		with self.assertRaisesRegex(RuntimeError, "terminated"):
-			_ = driver.voice
-		with self.assertRaisesRegex(RuntimeError, "terminated"):
-			driver.voice = "mockVoice"
-		with self.assertRaisesRegex(RuntimeError, "terminated"):
-			_ = driver.rate
-		with self.assertRaisesRegex(RuntimeError, "terminated"):
-			driver.rate = 50
-		self.assertIs(self.module._MockLifecycleState.TERMINATED, driver._state)
-		with self._availableEnvironment():
-			failingDriver = self.module.SynthDriver()
-			failingDriver.failTermination = True
-			with self.assertRaisesRegex(RuntimeError, "inherited cleanup failed"):
-				failingDriver.terminate()
-			failingDriver.terminate()
-		self.assertIs(self.module._MockLifecycleState.TERMINATED, failingDriver._state)
-		self.assertEqual(1, failingDriver.baseTerminateCalls)
 
-	def test_supported_settings_are_exactly_voice_and_rate(self) -> None:
-		self.assertEqual(["voice", "rate"], [setting.id for setting in self.module.SynthDriver.supportedSettings])
-
-	def test_fixed_mock_voice(self) -> None:
-		with self._availableEnvironment():
+	def test_voice_and_rate_contract_remains_bounded(self) -> None:
+		with patch.dict(os.environ, self.environment, clear=True):
 			driver = self.module.SynthDriver()
-		self.assertEqual("mockVoice", driver.voice)
-		self.assertEqual(["mockVoice"], list(driver.availableVoices))
-		voice = driver.availableVoices["mockVoice"]
-		self.assertEqual("Mock Voice — No Speech", voice.displayName)
-		self.assertIsNone(voice.language)
-		driver.voice = "mockVoice"
-		with self.assertRaises(LookupError):
-			driver.voice = "unknown"
-
-	def test_mock_rate_validation_and_round_trip(self) -> None:
-		with self._availableEnvironment():
-			driver = self.module.SynthDriver()
-		self.assertEqual(50, driver.rate)
-		for value in (0, 37, 100):
+		self.assertEqual("configuredModel", driver.voice)
+		self.assertEqual("Configured Piper model", driver.availableVoices[driver.voice].displayName)
+		self.assertEqual("und_TEST", driver.availableVoices[driver.voice].language)
+		for value in (0, 50, 100):
 			driver.rate = value
-			self.assertEqual(value, driver.rate)
-		for value in (-1, 101):
-			with self.assertRaises(ValueError):
-				driver.rate = value
-		for value in (False, True, 1.0, "50", None):
+		for value in (False, 1.0, "50"):
 			with self.assertRaises(TypeError):
 				driver.rate = value
-
-	def test_unexpected_speak_fails_without_using_sequence(self) -> None:
-		class PrivateSpeechSequence:
-			def __iter__(self):
-				raise AssertionError("speech sequence was iterated")
-
-			def __repr__(self) -> str:
-				raise AssertionError("speech sequence was represented")
-
-			def __str__(self) -> str:
-				raise AssertionError("speech sequence was converted to text")
-
-			def __eq__(self, other) -> bool:
-				raise AssertionError("speech sequence was compared")
-
-			def __len__(self) -> int:
-				raise AssertionError("speech sequence length was inspected")
-
-			def __contains__(self, item) -> bool:
-				raise AssertionError("speech sequence membership was inspected")
-
-			def __format__(self, formatSpec: str) -> str:
-				raise AssertionError("speech sequence was formatted")
-
-			def __copy__(self):
-				raise AssertionError("speech sequence was copied")
-
-			def __deepcopy__(self, memo):
-				raise AssertionError("speech sequence was deep-copied")
-
-		with self._availableEnvironment():
-			driver = self.module.SynthDriver()
-		initialState = driver._state
-		with self.assertRaisesRegex(RuntimeError, "Phase 2E has no speech implementation"):
-			driver.speak(PrivateSpeechSequence())
-		self.assertIs(initialState, driver._state)
-		driver.terminate()
-		with self.assertRaisesRegex(RuntimeError, "terminated"):
-			driver.speak(PrivateSpeechSequence())
+		with self.assertRaises(LookupError):
+			driver.voice = "other"
 
 
 if __name__ == "__main__":

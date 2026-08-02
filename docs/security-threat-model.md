@@ -8,6 +8,8 @@
 
 > Phase 2H's experiment accepts only explicit local model/config/output paths, bounds text and file sizes, refuses implicit overwrite, performs no download or network access, and reports errors without text or paths. The two approved model downloads and dependency installation were manual verification actions, not adapter behavior. An Authenticode-verified Visual C++ prerequisite resolved native loading, but native model parsing, DLL servicing, dependency provenance, and eventual process containment remain security boundaries.
 
+> Phase 2I keeps native Piper/ONNX code in a one-shot child. Availability requires the exact Phase 2C marker plus explicit existing runtime/model/configuration files. The child receives at most 65,536 request bytes, accepts at most 16,384 text code points, returns at most 32 MiB PCM, exposes fixed content-free errors, uses `shell=False`, and is terminated on teardown or a provisional timeout. This reduces native crash exposure but does not make supplied models trustworthy or constitute a hardened production IPC design.
+
 ## Scope, assets, and boundaries
 
 This is defensive design, not certification or legal clearance. Assets: NVDA availability, user text, local files/configuration/models, audio privacy/integrity, process and release integrity, and user trust. Boundaries: NVDA core ↔ add-on; add-on ↔ child IPC; worker ↔ native Piper/eSpeak/ONNX Runtime; runtime ↔ model/config; managed data ↔ temporary storage; repository/release pipeline ↔ installed asset; and a future downloader ↔ network/catalogue. Secure-screen use is unsupported.

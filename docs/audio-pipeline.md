@@ -1,5 +1,7 @@
 # Audio and notification pipeline
 
+> Phase 2I implements only a synchronous complete-buffer development slice: correlated mono 16-bit PCM is fed to the pinned `nvwave.WavePlayer`, `idle()` drains it, and `synthDoneSpeaking` follows. It does not implement the streaming/buffering/index design below, and its blocking behavior is not production-ready.
+
 ## Evidence and proposed flow
 
 Pinned evidence: `references/nvda-source/source/nvwave.py` (`WavePlayer.feed`, `idle`, `stop`, `pause`, `setVolume`, audio-device error state), built-in `oneCore.py` and `sapi5.py`, and `speech/manager.py` notification handlers. These implementations are evidence, not a stable public guarantee.

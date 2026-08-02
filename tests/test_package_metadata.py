@@ -18,6 +18,8 @@ EXPECTED_ARCHIVE_FILES = {
 	"synthDrivers/_nvdaPiperDriver/fakeWorker.py",
 	"synthDrivers/_nvdaPiperDriver/jobs.py",
 	"synthDrivers/_nvdaPiperDriver/protocol.py",
+	"synthDrivers/_nvdaPiperDriver/runtimeBridge.py",
+	"synthDrivers/_nvdaPiperDriver/runtimeWorker.py",
 	"synthDrivers/nvdaPiperDriver.py",
 }
 FORBIDDEN_EXTENSIONS = {".dll", ".exe", ".nvda-addon", ".onnx", ".pyc", ".wav"}

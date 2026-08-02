@@ -105,10 +105,12 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2I — First speech inside NVDA
 
-This phase may connect the verified runtime boundary to the controlled development driver in a safe disposable NVDA environment. Phase 2H completion does not itself approve this work.
+**Completed 2026-08-01 in the authorized portable NVDA environment. Phase 2J is not started.**
+
+This phase connects only a one-shot verified runtime boundary to the controlled development driver in a safe disposable NVDA environment.
 
 - **Objective:** feed verified PCM through the selected current NVDA-compatible audio path for plain text.
-- **Allowed:** narrow audio adapter and plain-text integration.
+- **Allowed:** narrow child bridge, audio adapter, and plain-text integration.
 - **Forbidden:** broad commands/settings/downloader/Store claims.
 - **Tests:** fake/real PCM order, final playback completion, device failure, repeated short speech, cleanup.
 - **Manual:** one short English and Persian utterance, select/deselect/shutdown, responsiveness observation with measured timestamps.

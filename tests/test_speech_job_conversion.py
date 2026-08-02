@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from dataclasses import FrozenInstanceError
 
-from tests.test_unavailable_driver import StubSynthDriver
+from tests.test_unavailable_driver import StubBridge, StubNotification, StubSynthDriver, StubWavePlayer
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -141,6 +141,7 @@ def tearDownModule() -> None:
 def _loadDriverModule() -> types.ModuleType:
 	stubHandler = types.ModuleType("synthDriverHandler")
 	stubHandler.SynthDriver = StubSynthDriver  # type: ignore[attr-defined]
+	stubHandler.synthDoneSpeaking = StubNotification()  # type: ignore[attr-defined]
 	stubHandler.VoiceInfo = lambda identifier, displayName, language: types.SimpleNamespace(  # type: ignore[attr-defined]
 		id=identifier,
 		displayName=displayName,
@@ -150,7 +151,21 @@ def _loadDriverModule() -> types.ModuleType:
 	if spec is None or spec.loader is None:
 		raise AssertionError("Unable to load driver module")
 	module = importlib.util.module_from_spec(spec)
-	with patch.dict(sys.modules, {"synthDriverHandler": stubHandler, "phase2e_driver": module}):
+	stubConfig = types.ModuleType("config")
+	stubConfig.conf = {"audio": {"outputDevice": "default"}}  # type: ignore[attr-defined]
+	stubNvwave = types.ModuleType("nvwave")
+	stubNvwave.WavePlayer = StubWavePlayer  # type: ignore[attr-defined]
+	stubBridge = types.ModuleType("synthDrivers._nvdaPiperDriver.runtimeBridge")
+	stubBridge.OneShotRuntimeBridge = StubBridge  # type: ignore[attr-defined]
+	stubBridge.readModelLanguage = lambda path: "und_TEST"  # type: ignore[attr-defined]
+	stubBridge.validateRuntimePaths = lambda *paths: paths if all(paths) else (_ for _ in ()).throw(ValueError())  # type: ignore[attr-defined]
+	with patch.dict(sys.modules, {
+		"config": stubConfig,
+		"nvwave": stubNvwave,
+		"synthDriverHandler": stubHandler,
+		"synthDrivers._nvdaPiperDriver.runtimeBridge": stubBridge,
+		"phase2e_driver": module,
+	}):
 		spec.loader.exec_module(module)
 	return module
 
@@ -324,7 +339,12 @@ class SpeechJobConversionTests(unittest.TestCase):
 
 	def test_driver_boundary_snapshots_settings_and_respects_lifecycle(self) -> None:
 		driverModule = _loadDriverModule()
-		marker = {driverModule._TEST_ONLY_MARKER_ENV: driverModule._TEST_ONLY_MARKER_VALUE}
+		marker = {
+			driverModule._TEST_ONLY_MARKER_ENV: driverModule._TEST_ONLY_MARKER_VALUE,
+			driverModule._RUNTIME_PATH_ENV: "runtime.exe",
+			driverModule._MODEL_PATH_ENV: "voice.onnx",
+			driverModule._CONFIG_PATH_ENV: "voice.onnx.json",
+		}
 		with patch.dict(os.environ, marker, clear=True):
 			driver = driverModule.SynthDriver()
 			source = ["private text"]
@@ -332,12 +352,12 @@ class SpeechJobConversionTests(unittest.TestCase):
 			driver.rate = 75
 			source[0] = "changed"
 			self.assertEqual("private text", job.items[0].text)
-			self.assertEqual("mockVoice", job.voiceId)
+			self.assertEqual("configuredModel", job.voiceId)
 			self.assertEqual(50, job.rate)
 			driver._voice = "unknown"
 			with self.assertRaisesRegex(LookupError, "active voice ID"):
 				driver._createSpeechJob([])
-			driver._voice = "mockVoice"
+			driver._voice = "configuredModel"
 			driver._rate = True
 			with self.assertRaises(TypeError):
 				driver._createSpeechJob([])

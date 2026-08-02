@@ -4,7 +4,7 @@
 
 Phase 2A uses NV Access [AddonTemplate](https://github.com/nvaccess/AddonTemplate) commit `44fb08643974f8d30791cebe36254474251ef162`, inspected 2026-08-01, as the structural and SCons reference. The live NV Access [add-on development links](https://github.com/nvaccess/nvda/blob/master/projectDocs/dev/addons.md), [Store submission guide](https://github.com/nvaccess/addon-datastore/blob/master/docs/submitters/submissionGuide.md), [API-version data](https://github.com/nvaccess/addon-datastore/blob/master/transform/nvdaAPIVersions.json), and AddonTemplate [localization guide](https://github.com/nvaccess/AddonTemplate/blob/master/docs/l10n/addonAuthors.md) were checked on the same date.
 
-Phases 2F–2G place `protocol.py` and `fakeWorker.py` in the underscore-prefixed private support package. Pinned NVDA `getSynthList` skips module names beginning with `_`, so it is not a separate driver. Phase 2G adds synchronous cancellation-state and metadata-only fake-result rules inside those existing files; the archive allowlist is unchanged. The fake worker has no transport or subprocess, and the main driver neither owns it nor connects `speak()` or `cancel()` to it. The package has no usable synthesizer, runtime, model, synthesis, PCM, audio code, NVDA notification, native dependency, or network behavior. Building or installing it does not validate the Proposed runtime ADR and does not imply Add-on Store acceptance.
+Phases 2F–2G place `protocol.py` and `fakeWorker.py` in the underscore-prefixed private support package. Pinned NVDA `getSynthList` skips module names beginning with `_`, so it is not a separate driver. Phase 2I adds project-owned `runtimeBridge.py` and `runtimeWorker.py` to that private package for the controlled one-shot child experiment. No runtime, ONNX library, model, environment, WAV, or binary is packaged. Building or installing it does not accept the Proposed runtime ADR or imply Add-on Store acceptance.
 
 Generated Python bytecode and `__pycache__` directories are explicitly excluded from packaging. This keeps the archive allowlist valid even when a local syntax check or isolated import has populated a source-adjacent cache.
 
@@ -77,6 +77,8 @@ synthDrivers/_nvdaPiperDriver/conversion.py
 synthDrivers/_nvdaPiperDriver/fakeWorker.py
 synthDrivers/_nvdaPiperDriver/jobs.py
 synthDrivers/_nvdaPiperDriver/protocol.py
+synthDrivers/_nvdaPiperDriver/runtimeBridge.py
+synthDrivers/_nvdaPiperDriver/runtimeWorker.py
 synthDrivers/nvdaPiperDriver.py
 ```
 
@@ -96,7 +98,7 @@ Remove-Item Env:NVDA_ADDON_PACKAGE
 
 The checks require the exact allowlist, required manifest fields, valid internal name/version, generated help, the exact permitted Python sources, safe archive paths, and no forbidden dependency or binary member. The driver has a separate isolated test using a narrow `synthDriverHandler.SynthDriver` stub; protocol and fake-worker tests import the private support package directly.
 
-Repository design documents, imported documentation, pinned NVDA source, tests, Git metadata, caches, local environments, binaries, models, and audio are intentionally excluded. Only the unavailable driver and its private pure Python conversion/protocol support are packaged.
+Repository design documents, imported documentation, pinned NVDA source, tests, Git metadata, caches, local environments, runtime dependencies, binaries, models, WAV files, and benchmark output are intentionally excluded. Only the development driver and project-owned Python support are packaged.
 
 ## Safe NVDA installation testing
 
@@ -105,7 +107,7 @@ Do not use a primary NVDA installation for development validation. Use a disposa
 1. Start the portable NVDA copy and record its exact version.
 2. Install the built archive through NVDA's add-on manager and accept a restart only in that portable copy.
 3. Confirm the add-on appears as a development package and its help opens with keyboard navigation.
-4. Confirm `NVDA Piper Driver` is absent from the synthesizer selection list because its availability check fails, and confirm the NVDA log has no error attributed to this add-on.
+4. Confirm `NVDA Piper Driver` is absent unless the exact Phase 2C marker and all three explicit local paths are supplied. Use only an authorized disposable portable profile for the gated speech experiment.
 5. Remove the add-on through the same manager, restart, and confirm its directory and listing are gone.
 6. Delete the disposable portable environment only after preserving redacted test evidence needed by the project.
 
@@ -113,7 +115,7 @@ No safe portable/development NVDA environment was available during Phases 2A–2
 
 ## Known limitations
 
-- The package proves metadata generation, archive contents, isolated import, identity, and deliberate unavailability only.
+- The package contains a synchronous development speech path but no runtime or model; it is unusable without unsupported explicit local activation.
 - AddonTemplate commit changes, Store validation changes, and new API-version data require revalidation.
 - Translation extraction and translated packages were not exercised; no translations are included.
 - Byte-for-byte archive reproducibility is not claimed because ZIP metadata may vary. Two clean Phase 2A builds produced identical member names and SHA-256 content hashes.
