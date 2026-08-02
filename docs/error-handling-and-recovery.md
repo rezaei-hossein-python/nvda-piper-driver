@@ -1,6 +1,6 @@
 # Error handling and recovery
 
-> Phase 2I exposes only fixed, content-free development bridge failures. Invalid explicit paths keep the driver unavailable; malformed/stale/oversized child output is rejected; timeout or teardown terminates the child. Accessible recovery UI, automatic restart policy, and device recovery are not implemented.
+> Phase 2J keeps fixed, content-free failures and adds classifications for runtime initialization, model loading, worker startup/crash/hang, protocol/PCM/playback failure, stale output, cancellation, controller failure, and shutdown timeout. Errors are dispatched without speech text. There is no restart loop, accessible recovery UI, or device-recovery policy.
 
 > Phase 2G implements only bounded fake-worker generation errors and metadata-only result statuses. It performs no retry, timeout, restart, audible cancellation, driver recovery, or user notification.
 
@@ -36,5 +36,7 @@ Stable error codes cross layers; exceptions do not. Severity is `info`, `recover
 ## Notification and fallback rules
 
 Errors are announced once per actionable incident, never once per keypress. A driver construction/check failure lets NVDA's verified selection fallback operate. Runtime/model/audio operational failures keep the driver selectable when repair is possible; repeated worker failure makes the instance unavailable and asks the user to choose another synthesizer. The add-on never selects a different voice/language silently.
+
+Phase 2J treats exact index and language-change items as tolerated, discarded metadata so ordinary managed utterances do not enter the unsupported-command rejection path. Metadata-only jobs are rejected with the content-free empty-speech error and are not submitted. A genuinely unsupported item is rejected locally during that `speak()` call, creates no controller request or internal retry, and emits at most one fixed content-free warning during a consecutive rejection episode; a later valid utterance resets the episode. No warning or error includes text, index, language, or event-argument values.
 
 Cancelled jobs do not become failed. Failed/cancelled jobs emit no stale index and no completion unless a target-NVDA integration experiment establishes a required failure-completion handshake; that result must update all design documents.

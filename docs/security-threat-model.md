@@ -10,6 +10,8 @@
 
 > Phase 2I keeps native Piper/ONNX code in a one-shot child. Availability requires the exact Phase 2C marker plus explicit existing runtime/model/configuration files. The child receives at most 65,536 request bytes, accepts at most 16,384 text code points, returns at most 32 MiB PCM, exposes fixed content-free errors, uses `shell=False`, and is terminated on teardown or a provisional timeout. This reduces native crash exposure but does not make supplied models trustworthy or constitute a hardened production IPC design.
 
+> Phase 2J adds exactly one controller thread, one active request, and one replaceable pending slot. Cancellation tokens close the child-creation race; stale PCM and completion are rejected. No command-line text, environment dump, network endpoint, WAV, or frame capture is introduced. Full PCM and text still reside transiently in memory, explicit local binaries/models remain trusted development inputs, and this is not a hardened production worker protocol.
+
 ## Scope, assets, and boundaries
 
 This is defensive design, not certification or legal clearance. Assets: NVDA availability, user text, local files/configuration/models, audio privacy/integrity, process and release integrity, and user trust. Boundaries: NVDA core ↔ add-on; add-on ↔ child IPC; worker ↔ native Piper/eSpeak/ONNX Runtime; runtime ↔ model/config; managed data ↔ temporary storage; repository/release pipeline ↔ installed asset; and a future downloader ↔ network/catalogue. Secure-screen use is unsupported.

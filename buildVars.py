@@ -25,7 +25,7 @@ addon_info = AddonInfo(
 	),
 	addon_version="0.1.0",
 	# Translators: Changes in this development package.
-	addon_changelog=_("Adds one synchronous, controlled portable-NVDA speech path for Phase 2I validation."),
+	addon_changelog=_("Replaces blocking synthesis with one bounded background request for Phase 2J validation."),
 	addon_author="Hosein Rezaei",
 	addon_url="https://github.com/rezaei-hossein-python/nvda-piper-driver",
 	addon_sourceURL="https://github.com/rezaei-hossein-python/nvda-piper-driver",
@@ -37,7 +37,7 @@ addon_info = AddonInfo(
 	addon_licenseURL="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
 )
 
-# Phase 2I adds only project-owned bridge/worker code; runtime and model assets stay external.
+# Phase 2J adds only project-owned controller/bridge/worker code; runtime and model assets stay external.
 pythonSources: list[str] = [
 	"addon/synthDrivers/nvdaPiperDriver.py",
 	"addon/synthDrivers/_nvdaPiperDriver/*.py",

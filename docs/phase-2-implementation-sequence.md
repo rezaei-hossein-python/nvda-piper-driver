@@ -105,7 +105,7 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2I — First speech inside NVDA
 
-**Completed 2026-08-01 in the authorized portable NVDA environment. Phase 2J is not started.**
+**Completed 2026-08-01 in the authorized portable NVDA environment.**
 
 This phase connects only a one-shot verified runtime boundary to the controlled development driver in a safe disposable NVDA environment.
 
@@ -117,12 +117,16 @@ This phase connects only a one-shot verified runtime boundary to the controlled 
 - **Docs/commit:** audio findings/limitations; `Speak plain text through NVDA with Piper`.
 - **Exit:** first speech without hang/leak; architecture ADR still Proposed. Stop.
 
-## Phase 2J — Real cancellation, indexes, and completion
+## Phase 2J — Bounded background execution
 
-- **Objective:** meet the minimum functional SynthDriver signaling/interruption behavior.
-- **Allowed:** generation cancellation, index/audio alignment, notifications, stress/integration tests.
-- **Forbidden:** downloader, extra prosody/language automation, release expansion.
-- **Tests:** cancel-to-silence/idle, index order/timing, done exactly once after final played, failures, rapid navigation, soak.
-- **Manual:** character/word/line/say-all interruption, pause/resume, device change, English/Persian/additional language.
-- **Docs/commit:** measured results, accepted/reversed ADR proposal in a separate later decision only; `Implement Piper speech cancellation and progress signaling`.
-- **Exit:** reproducible minimum behavior and benchmark evidence exist. Stop before broader phases.
+- **Status:** incomplete; automated checks and portable selection pass, but pinned NVDA adds an index to every normal utterance and the deliberately index-free Phase 2J extraction boundary rejects it before controller submission. No Phase 2J Piper audio ran.
+- **Objective:** replace Phase 2I main-thread blocking with one active request, one replaceable pending slot, prompt playback stop, stale PCM/completion rejection, and final completion after playback.
+- **Allowed:** one non-daemon controller thread, repeated one-shot children, bounded generation invalidation, background `WavePlayer` drain, content-free diagnostics, and safety-gated portable testing.
+- **Forbidden:** indexes, general queueing, overlap, persistent production protocol, pause/resume, model UI/discovery, runtime/model bundling, and language-specific behavior.
+- **Tests:** caller responsiveness, one-slot replacement, cancel-to-silence/worker-idle separation, final completion after playback, failures, rapid navigation, and shutdown.
+- **Manual:** cold-load responsiveness, current speech, rapid replacement, cancellation, eSpeak switching, watchdog/log review, and orphan-process review in the authorized portable copy.
+- **Exit:** all automated and portable criteria in `background-runtime-execution.md` and `phase-2j-portable-validation.md` pass. Stop before Phase 2K.
+
+## Phase 2K — Indexes and broader sequence fidelity
+
+- **Not begun or approved.** Its narrow proposed boundary is index/progress signaling and broader speech-sequence fidelity. It excludes runtime/model bundling, model-management UI, and release work unless separately authorized.

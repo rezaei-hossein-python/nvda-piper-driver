@@ -94,6 +94,10 @@ class SuppressUnicodeNormalizationCommand(SpeechCommand):
 	pass
 
 
+class BeepCommand(SpeechCommand):
+	pass
+
+
 def _commandModule() -> types.ModuleType:
 	module = types.ModuleType("speech.commands")
 	for commandType in (
@@ -109,6 +113,7 @@ def _commandModule() -> types.ModuleType:
 		ConfigProfileTriggerCommand,
 		EndUtteranceCommand,
 		SuppressUnicodeNormalizationCommand,
+		BeepCommand,
 	):
 		setattr(module, commandType.__name__, commandType)
 	return module
@@ -142,6 +147,7 @@ def _loadDriverModule() -> types.ModuleType:
 	stubHandler = types.ModuleType("synthDriverHandler")
 	stubHandler.SynthDriver = StubSynthDriver  # type: ignore[attr-defined]
 	stubHandler.synthDoneSpeaking = StubNotification()  # type: ignore[attr-defined]
+	stubHandler.synthIndexReached = StubNotification()  # type: ignore[attr-defined]
 	stubHandler.VoiceInfo = lambda identifier, displayName, language: types.SimpleNamespace(  # type: ignore[attr-defined]
 		id=identifier,
 		displayName=displayName,
@@ -156,13 +162,29 @@ def _loadDriverModule() -> types.ModuleType:
 	stubNvwave = types.ModuleType("nvwave")
 	stubNvwave.WavePlayer = StubWavePlayer  # type: ignore[attr-defined]
 	stubBridge = types.ModuleType("synthDrivers._nvdaPiperDriver.runtimeBridge")
-	stubBridge.OneShotRuntimeBridge = StubBridge  # type: ignore[attr-defined]
+	stubBridge.PersistentRuntimeBridge = StubBridge  # type: ignore[attr-defined]
 	stubBridge.readModelLanguage = lambda path: "und_TEST"  # type: ignore[attr-defined]
 	stubBridge.validateRuntimePaths = lambda *paths: paths if all(paths) else (_ for _ in ()).throw(ValueError())  # type: ignore[attr-defined]
+	stubController = types.ModuleType("synthDrivers._nvdaPiperDriver.backgroundController")
+	stubController.SynthesisSegment = lambda text, characterMode=False, indexesAfter=(): types.SimpleNamespace(text=text, characterMode=characterMode, indexesAfter=indexesAfter)  # type: ignore[attr-defined]
+	stubController.BackgroundRequest = lambda generationId, jobId, segments: types.SimpleNamespace(  # type: ignore[attr-defined]
+		generationId=generationId, jobId=jobId, segments=segments, text="".join(segment.text for segment in segments),
+	)
+	stubController.BackgroundController = lambda *args: types.SimpleNamespace(  # type: ignore[attr-defined]
+		cancel=lambda: None, shutdown=lambda: True, submit=lambda request: None, isCurrent=lambda generationId: True,
+	)
+	stubLogHandler = types.ModuleType("logHandler")
+	stubLogHandler.log = types.SimpleNamespace(error=lambda *args: None)  # type: ignore[attr-defined]
+	stubQueueHandler = types.ModuleType("queueHandler")
+	stubQueueHandler.eventQueue = object()  # type: ignore[attr-defined]
+	stubQueueHandler.queueFunction = lambda queue, callback: callback()  # type: ignore[attr-defined]
 	with patch.dict(sys.modules, {
 		"config": stubConfig,
+		"logHandler": stubLogHandler,
 		"nvwave": stubNvwave,
+		"queueHandler": stubQueueHandler,
 		"synthDriverHandler": stubHandler,
+		"synthDrivers._nvdaPiperDriver.backgroundController": stubController,
 		"synthDrivers._nvdaPiperDriver.runtimeBridge": stubBridge,
 		"phase2e_driver": module,
 	}):
@@ -279,7 +301,6 @@ class SpeechJobConversionTests(unittest.TestCase):
 			CallbackCommand(),
 			ConfigProfileTriggerCommand(),
 			EndUtteranceCommand(),
-			SuppressUnicodeNormalizationCommand(),
 			42,
 			b"private",
 			IndexCommand,
@@ -290,6 +311,18 @@ class SpeechJobConversionTests(unittest.TestCase):
 		second = self.converter.convert([], voiceId="mockVoice", rate=50)
 		self.assertEqual((1, 1, 1), (first.jobId, first.generationId, first.requestNumber))
 		self.assertEqual((2, 2, 2), (second.jobId, second.generationId, second.requestNumber))
+
+	def test_speech_level_normalization_marker_is_ignored(self) -> None:
+		job = self.converter.convert(
+			[SuppressUnicodeNormalizationCommand(), "character", SuppressUnicodeNormalizationCommand()],
+			voiceId="mockVoice",
+			rate=50,
+		)
+		self.assertEqual((jobs.TextItem("character"),), job.items)
+
+	def test_nvda_beep_metadata_is_ignored(self) -> None:
+		job = self.converter.convert([BeepCommand(), "A"], voiceId="mockVoice", rate=50)
+		self.assertEqual((jobs.TextItem("A"),), job.items)
 
 	def test_subclasses_and_malformed_commands_are_rejected_atomically(self) -> None:
 		class IndexSubclass(IndexCommand):

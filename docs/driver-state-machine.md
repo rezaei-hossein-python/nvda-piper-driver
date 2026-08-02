@@ -1,6 +1,6 @@
 # Driver state machine
 
-> Phase 2I retains the existing initializing/ready/terminated driver lifecycle and adds one owned one-shot child plus `WavePlayer`. `cancel()` is teardown only: invalidate current PCM, stop playback, and terminate the child. The broader responsive state machine below remains a design target for Phase 2J and later.
+> Phase 2J adds a bounded controller with starting/ready/active/failed/stopping/stopped internal states around the existing driver lifecycle. It owns one active request and one replaceable pending slot. `cancel()` invalidates the generation, clears pending work, stops playback, and requests one-shot child termination without waiting on the caller thread. Persistent-worker recovery, indexes, and the broader production state machine remain future work.
 
 > This document remains the proposed production model. Phase 2D implements only private `initializing`, `ready`, and `terminated` mock states, with none of the runtime meanings or resources described below. See `mock-lifecycle-and-settings.md`.
 

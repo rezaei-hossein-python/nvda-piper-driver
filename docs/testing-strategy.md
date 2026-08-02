@@ -41,6 +41,10 @@ Phase 2H adds pure standalone adapter and benchmark tests for bounded path/confi
 
 Phase 2I adds pure tests for the exact four-part development gate, explicit path validation, one-job conversion, bounded/correlated PCM framing, supported mono 16-bit playback construction, final drain notification, stale-result rejection, and idempotent player/worker teardown. A real child invocation uses only the retained ignored Phase 2H runtime and model. Manual evidence is restricted to `D:\NVDA`; it must cover audible output, switching back to eSpeak, clean exit, no surviving worker, and content-free local logs. No responsiveness or cancellation-latency claim follows from this synchronous prototype.
 
+Phase 2J adds deterministic controller doubles for nonblocking submission/cancellation, one-slot replacement, persistent-child startup, framed requests, child-creation cancellation races, stale PCM/index/completion rejection, segment playback order, bounded join, content release, and idempotent shutdown. Focused driver tests prove exact character-mode segmentation, mandatory index callback ordering, language metadata tolerance, metadata-only rejection, every other non-text command rejection, and recovery after one unsupported job. Retained-runtime tests perform real model load, warm multi-request reuse, character-mode synthesis, and ordered index delivery with a playback double. Portable evidence is still required for typed echo, Read All, latency, and watchdog behavior.
+
+The interaction investigation adds source-derived sequence-shape coverage and documents the Read All index-callback dependency. It does not claim CharacterMode, Break, prosody, phoneme, or index support, and it does not add a live text-bearing diagnostic logger.
+
 ### Accessibility acceptance
 
 Execute `docs/accessibility-acceptance-criteria.md` with keyboard and NVDA: focus/order/names/states, validation and recovery, manual model import, progress/cancel, first run, restart prompts, help navigation, localization, and announcement rate.

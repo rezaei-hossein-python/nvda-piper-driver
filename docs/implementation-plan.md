@@ -78,13 +78,13 @@ Exit criteria:
 - Phase 2 can proceed milestone by milestone without inventing architecture in code;
 - the runtime ADR remains Proposed; at Phase 1C completion, implementation had not begun.
 
-See `docs/phase-2-implementation-sequence.md`. Phases 2A–2I are complete. Phase 2I produced one audible, development-only portable-NVDA utterance and a successful switch back to eSpeak; Phase 2J has not begun.
+See `docs/phase-2-implementation-sequence.md`. Phases 2A–2I are complete. Phase 2J replaces Phase 2I's blocking execution with a bounded background controller. Automated and retained-runtime checks pass, and portable discovery/selection now succeeds, but every normal NVDA utterance carries a manager-generated index item that the index-free Phase 2J extraction boundary rejects before submission; Phase 2J is incomplete.
 
 ## Phase 2 — Minimal add-on and driver skeleton
 
 This summary is superseded for execution by the separate Phase 2A–2J stop-gated sequence. Do not combine its milestones.
 
-Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver. Phase 2C added the exact test-only gate, Phase 2D mock lifecycle/settings, and Phase 2E immutable jobs. Phase 2F added strict serialization and a synchronous in-process fake-worker state machine. Phase 2G added only synchronous cancellation/generation state and metadata-only fake-result tests. Phase 2H verified a current standalone Piper boundary with one model, real WAV output, and measurements. Phase 2I keeps runtime/model assets external while prototyping one synchronous child-to-`WavePlayer` utterance in portable NVDA.
+Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver. Phase 2C added the exact test-only gate, Phase 2D mock lifecycle/settings, and Phase 2E immutable jobs. Phase 2F added strict serialization and a synchronous in-process fake-worker state machine. Phase 2G added only synchronous cancellation/generation state and metadata-only fake-result tests. Phase 2H verified a current standalone Piper boundary with one model and Phase 2I produced the first portable-NVDA utterance. Phase 2J keeps runtime/model assets external while moving the repeated one-shot child and `WavePlayer` drain to bounded background execution.
 
 Deliverables:
 

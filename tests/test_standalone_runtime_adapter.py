@@ -8,6 +8,8 @@ from dataclasses import FrozenInstanceError
 from pathlib import Path
 import sys
 import tempfile
+import shutil
+import uuid
 import types
 import unittest
 from unittest.mock import patch
@@ -15,6 +17,7 @@ import wave
 
 
 ROOT = Path(__file__).resolve().parents[1]
+TEST_TEMP_ROOT = ROOT / ".test-temp"
 MODULE_PATH = ROOT / "experiments" / "piperRuntime" / "runtimeAdapter.py"
 spec = importlib.util.spec_from_file_location("phase2hRuntimeAdapter", MODULE_PATH)
 assert spec is not None and spec.loader is not None
@@ -39,6 +42,17 @@ def _writeVoice(directory: Path, **updates: object) -> tuple[Path, Path]:
 	return model, config
 
 
+class _TemporaryDirectory:
+	def __enter__(self) -> str:
+		TEST_TEMP_ROOT.mkdir(exist_ok=True)
+		self.path = TEST_TEMP_ROOT / uuid.uuid4().hex
+		self.path.mkdir()
+		return str(self.path)
+
+	def __exit__(self, *_: object) -> None:
+		shutil.rmtree(self.path, ignore_errors=True)
+
+
 class ValidationTests(unittest.TestCase):
 	def test_structured_results_are_immutable(self) -> None:
 		metadata = runtimeAdapter.VoiceMetadata(16_000, 1, (), "espeak", "1.0.0")
@@ -49,7 +63,7 @@ class ValidationTests(unittest.TestCase):
 				value.sampleRate = 1  # type: ignore[attr-defined]
 
 	def test_paths_config_and_language_neutral_metadata(self) -> None:
-		with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+		with _TemporaryDirectory() as temporary:
 			model, config = _writeVoice(Path(temporary), num_speakers=3, speaker_id_map={"arbitrary label": 2})
 			validatedModel, validatedConfig, metadata = runtimeAdapter.validateVoiceFiles(model, config)
 			self.assertEqual(model, validatedModel)
@@ -59,7 +73,7 @@ class ValidationTests(unittest.TestCase):
 
 	def test_invalid_paths_and_malformed_config_are_content_free(self) -> None:
 		secret = "PRIVATE-SPEECH-CONTENT"
-		with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+		with _TemporaryDirectory() as temporary:
 			directory = Path(temporary)
 			model, config = _writeVoice(directory)
 			config.write_text(secret, encoding="utf-8")
@@ -78,7 +92,7 @@ class ValidationTests(unittest.TestCase):
 			runtimeAdapter.validateText("x" * (runtimeAdapter.MAX_TEXT_CODE_POINTS + 1))
 
 	def test_output_overwrite_is_explicit(self) -> None:
-		with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+		with _TemporaryDirectory() as temporary:
 			output = Path(temporary) / "out.wav"
 			output.write_bytes(b"existing")
 			with self.assertRaises(runtimeAdapter.RuntimeAdapterError) as caught:
@@ -87,7 +101,7 @@ class ValidationTests(unittest.TestCase):
 			self.assertEqual(output, runtimeAdapter.validateOutputPath(output, overwrite=True))
 
 	def test_wav_metadata_parser(self) -> None:
-		with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+		with _TemporaryDirectory() as temporary:
 			output = Path(temporary) / "valid.wav"
 			with wave.open(str(output), "wb") as wavFile:
 				wavFile.setparams((1, 2, 16_000, 4, "NONE", "not compressed"))
@@ -124,7 +138,7 @@ class AdapterTests(unittest.TestCase):
 		fakeModule = types.ModuleType("piper")
 		fakeModule.PiperVoice = FakeVoice
 		fakeModule.SynthesisConfig = lambda **kwargs: kwargs
-		with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+		with _TemporaryDirectory() as temporary:
 			directory = Path(temporary)
 			model, config = _writeVoice(directory)
 			output = directory / "output.wav"
@@ -138,7 +152,7 @@ class AdapterTests(unittest.TestCase):
 				self.assertIsNone(adapter._voice)
 
 	def test_runtime_version_is_exact(self) -> None:
-		with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+		with _TemporaryDirectory() as temporary:
 			model, config = _writeVoice(Path(temporary))
 			adapter = runtimeAdapter.PiperRuntimeAdapter(model, config)
 			with patch.object(runtimeAdapter.importlib.metadata, "version", return_value="1.4.2"):
@@ -149,7 +163,7 @@ class AdapterTests(unittest.TestCase):
 	@unittest.skipUnless(__import__("os").environ.get("PIPER_TEST_MODEL") and __import__("os").environ.get("PIPER_TEST_CONFIG"), "Set PIPER_TEST_MODEL and PIPER_TEST_CONFIG for local runtime validation")
 	def test_supplied_runtime_and_model(self) -> None:
 		import os
-		with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+		with tempfile.TemporaryDirectory() as temporary:
 			adapter = runtimeAdapter.PiperRuntimeAdapter(os.environ["PIPER_TEST_MODEL"], os.environ["PIPER_TEST_CONFIG"])
 			result = adapter.synthesize("Standalone runtime validation.", Path(temporary) / "runtime.wav")
 			self.assertGreater(result.frameCount, 0)

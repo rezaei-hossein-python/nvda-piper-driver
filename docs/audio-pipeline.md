@@ -1,6 +1,6 @@
 # Audio and notification pipeline
 
-> Phase 2I implements only a synchronous complete-buffer development slice: correlated mono 16-bit PCM is fed to the pinned `nvwave.WavePlayer`, `idle()` drains it, and `synthDoneSpeaking` follows. It does not implement the streaming/buffering/index design below, and its blocking behavior is not production-ready.
+> Phase 2J replaces Phase 2I's main-thread blocking path. Correlated complete-buffer mono 16-bit PCM is fed in bounded slices and `idle()` drains on the controller thread; only current-generation completion is queued to NVDA's main-thread event queue. Mandatory NVDA index and language-change metadata is discarded before synthesis, while metadata notification and worker streaming remain unimplemented. The provisional development path is not production-ready.
 
 ## Evidence and proposed flow
 
@@ -37,6 +37,10 @@ Use NVDA's configured output path only after confirming the current API. On devi
 Provisional trigger for `synthDoneSpeaking` is **final PCM played**, after all deliverable indexes, because `SpeechManager` uses completion to advance speech and OneCore/SAPI5 evidence ties completion to output completion rather than inference alone. `WavePlayer.idle()` must never block NVDA's main thread. Exact callback/drain semantics require a prototype.
 
 ## Index alignment
+
+Phase 2J preserves index items as bounded numeric boundaries. The controller sends the boundary metadata with the corresponding segment, plays that segment, then queues `synthIndexReached` through NVDA's event queue. It emits no callback before the preceding audio boundary, and suppresses stale/cancelled callbacks. Index values are released with the request; no index timing is fabricated.
+
+The same compatibility rule applies to `LanguageChangeItem`: it contributes no audio/text data, does not select or validate a model, and is neither forwarded nor retained. The single explicitly configured Piper model receives exact concatenated text. Any future mapping between language metadata and multiple models requires a separate design.
 
 Worker synthesis offsets are advisory. Each index is mapped to a PCM frame offset when backend timing exists; otherwise split synthesis at safe index boundaries and associate the index with the preceding audio feed. Parent emits `synthIndexReached` from a player completion callback only when corresponding audio has played, as OneCore demonstrates conceptually. Never emit from text consumption or PCM generation alone. Coarse boundary splitting may add latency/artifacts and must be compared with timing metadata. Indexes at zero, consecutive indexes, final indexes, cancellation, and silence require experiments.
 

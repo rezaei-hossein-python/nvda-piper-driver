@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Phases 2G–2I are complete. Phase 2I produced the first controlled audible Piper utterance in portable NVDA and switched back to eSpeak. It does not provide responsive production speech, and no public release exists.**
+**Phases 2G–2I are complete. Phase 2J background execution passes automated review and portable driver selection, but remains incomplete because normal NVDA utterances include a mandatory manager-generated index item that the current index-free extraction boundary rejects before submission. No Phase 2J audible validation or public release exists.**
 
 ## Milestones
 
@@ -28,7 +28,7 @@
 - [x] Phase 2G: prove bounded synchronous cancellation and stale fake-result rejection with mocks.
 - [x] Phase 2H: complete verified, language-neutral standalone Piper synthesis and measurements outside NVDA.
 - [x] Phase 2I: verify one controlled audible utterance and clean switching/shutdown in portable NVDA.
-- [ ] Phase 2J: separately address responsive execution, production cancellation, indexes, and completion semantics.
+- [ ] Phase 2J: verify bounded background execution, replacement, cancellation, stale rejection, and final completion in portable NVDA; indexes remain deferred.
 - [x] Make the unavailable driver module discoverable by NVDA's loader while excluding it from selection.
 - [ ] Select and validate a Piper runtime integration.
 - [ ] Speak the first plain-text utterance.

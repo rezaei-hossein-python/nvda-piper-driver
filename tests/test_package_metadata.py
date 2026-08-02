@@ -14,6 +14,7 @@ EXPECTED_ARCHIVE_FILES = {
 	"doc/en/readme.html",
 	"manifest.ini",
 	"synthDrivers/_nvdaPiperDriver/__init__.py",
+	"synthDrivers/_nvdaPiperDriver/backgroundController.py",
 	"synthDrivers/_nvdaPiperDriver/conversion.py",
 	"synthDrivers/_nvdaPiperDriver/fakeWorker.py",
 	"synthDrivers/_nvdaPiperDriver/jobs.py",

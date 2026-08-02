@@ -1,4 +1,4 @@
-"""Pure tests for the bounded Phase 2I one-shot process boundary."""
+"""Pure tests for the bounded one-shot process boundary used by Phase 2J."""
 
 import ast
 import json
@@ -11,6 +11,8 @@ from unittest.mock import Mock, patch
 from addon.synthDrivers._nvdaPiperDriver.runtimeBridge import (
 	MAX_PCM_BYTES,
 	OneShotRuntimeBridge,
+	PersistentRuntimeBridge,
+	RuntimeBridgeCancelled,
 	RuntimeBridgeError,
 	readModelLanguage,
 	validateRuntimePaths,
@@ -92,6 +94,26 @@ class RuntimeBridgeTests(unittest.TestCase):
 		self.assertNotIn("private fixture", str(caught.exception))
 		self.assertNotIn("local path", str(caught.exception))
 
+	def test_interrupt_is_nonblocking_and_invalidates_racing_work(self) -> None:
+		with patch.object(Path, "is_file", return_value=True):
+			bridge = OneShotRuntimeBridge("runtime.exe", "voice.onnx", "voice.onnx.json", "runtimeWorker.py")
+		token = bridge.cancellationToken
+		bridge.interrupt()
+		with self.assertRaises(RuntimeBridgeCancelled):
+			bridge.synthesize("private fixture", 1, 1, cancellationToken=token)
+
+	def test_persistent_interrupt_does_not_consume_restart_budget(self) -> None:
+		bridge = PersistentRuntimeBridge.__new__(PersistentRuntimeBridge)
+		bridge._processLock = __import__("threading").Lock()
+		bridge._cancellationToken = 0
+		bridge._restartCount = 2
+		process = Mock()
+		process.poll.return_value = None
+		bridge._process = process
+		bridge.interrupt()
+		self.assertEqual(0, bridge._restartCount)
+		process.terminate.assert_called_once_with()
+
 	def test_worker_has_no_network_or_language_specific_logic(self) -> None:
 		for path in (BRIDGE_PATH, WORKER_PATH):
 			tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -111,7 +133,7 @@ class RuntimeBridgeTests(unittest.TestCase):
 		model = os.environ.get("NVDA_PIPER_MODEL_PATH")
 		config = os.environ.get("NVDA_PIPER_CONFIG_PATH")
 		if not all((runtime, model, config)):
-			self.skipTest("Set explicit Phase 2I runtime/model/config paths for child integration")
+			self.skipTest("Set explicit Phase 2J runtime/model/config paths for child integration")
 		bridge = OneShotRuntimeBridge(runtime, model, config, str(WORKER_PATH))  # type: ignore[arg-type]
 		result = bridge.synthesize("Bounded child integration fixture.", 1, 1)
 		self.assertEqual((1, 1, 1, 2), (result.generationId, result.jobId, result.channels, result.sampleWidth))

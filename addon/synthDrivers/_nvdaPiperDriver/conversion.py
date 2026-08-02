@@ -51,8 +51,17 @@ def _convertProsody(item: object, commandType: ProsodyCommandType) -> ProsodyIte
 	return ProsodyItem(commandType, offset, multiplier, isDefault)
 
 
-def _convertItem(item: object) -> SpeechJobItem:
+def _convertItem(item: object) -> SpeechJobItem | None:
 	itemType = type(item)
+	# NVDA consumes this speech-level normalization marker before synthesis.
+	# It must not make otherwise valid typed-character speech fail at the driver boundary.
+	if itemType is commands.SuppressUnicodeNormalizationCommand:
+		return None
+	# NVDA may add a beep alongside a capital/character announcement. Audio
+	# feedback is owned by NVDA; Piper only receives the spoken text.
+	beepCommand = getattr(commands, "BeepCommand", None)
+	if beepCommand is not None and itemType is beepCommand:
+		return None
 	if itemType is str:
 		return TextItem(item)
 	if itemType is commands.IndexCommand:
@@ -102,7 +111,11 @@ class SpeechJobConverter:
 		if not 0 <= rate <= 100:
 			raise ValueError("active rate must be between 0 and 100")
 
-		items = tuple(_convertItem(item) for item in speechSequence)
+		items = tuple(
+			converted
+			for item in speechSequence
+			if (converted := _convertItem(item)) is not None
+		)
 		if max(self._nextJobId, self._nextGenerationId, self._nextRequestNumber) > _MAX_IDENTIFIER:
 			raise OverflowError("speech job identifier space exhausted")
 

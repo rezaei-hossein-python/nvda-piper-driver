@@ -4,7 +4,7 @@
 
 Phase 2A uses NV Access [AddonTemplate](https://github.com/nvaccess/AddonTemplate) commit `44fb08643974f8d30791cebe36254474251ef162`, inspected 2026-08-01, as the structural and SCons reference. The live NV Access [add-on development links](https://github.com/nvaccess/nvda/blob/master/projectDocs/dev/addons.md), [Store submission guide](https://github.com/nvaccess/addon-datastore/blob/master/docs/submitters/submissionGuide.md), [API-version data](https://github.com/nvaccess/addon-datastore/blob/master/transform/nvdaAPIVersions.json), and AddonTemplate [localization guide](https://github.com/nvaccess/AddonTemplate/blob/master/docs/l10n/addonAuthors.md) were checked on the same date.
 
-Phases 2F–2G place `protocol.py` and `fakeWorker.py` in the underscore-prefixed private support package. Pinned NVDA `getSynthList` skips module names beginning with `_`, so it is not a separate driver. Phase 2I adds project-owned `runtimeBridge.py` and `runtimeWorker.py` to that private package for the controlled one-shot child experiment. No runtime, ONNX library, model, environment, WAV, or binary is packaged. Building or installing it does not accept the Proposed runtime ADR or imply Add-on Store acceptance.
+Phases 2F–2G place `protocol.py` and `fakeWorker.py` in the underscore-prefixed private support package. Pinned NVDA `getSynthList` skips module names beginning with `_`, so it is not a separate driver. Phase 2I adds project-owned `runtimeBridge.py` and `runtimeWorker.py`; Phase 2J adds `backgroundController.py`. No runtime, ONNX library, model, environment, WAV, or binary is packaged. Building or installing it does not accept the Proposed runtime ADR or imply Add-on Store acceptance.
 
 Generated Python bytecode and `__pycache__` directories are explicitly excluded from packaging. This keeps the archive allowlist valid even when a local syntax check or isolated import has populated a source-adjacent cache.
 
@@ -73,6 +73,7 @@ The complete allowlist is:
 manifest.ini
 doc/en/readme.html
 synthDrivers/_nvdaPiperDriver/__init__.py
+synthDrivers/_nvdaPiperDriver/backgroundController.py
 synthDrivers/_nvdaPiperDriver/conversion.py
 synthDrivers/_nvdaPiperDriver/fakeWorker.py
 synthDrivers/_nvdaPiperDriver/jobs.py
@@ -115,7 +116,7 @@ No safe portable/development NVDA environment was available during Phases 2A–2
 
 ## Known limitations
 
-- The package contains a synchronous development speech path but no runtime or model; it is unusable without unsupported explicit local activation.
+- The package contains a bounded background development speech path but no runtime or model; it is unusable without unsupported explicit local activation.
 - AddonTemplate commit changes, Store validation changes, and new API-version data require revalidation.
 - Translation extraction and translated packages were not exercised; no translations are included.
 - Byte-for-byte archive reproducibility is not claimed because ZIP metadata may vary. Two clean Phase 2A builds produced identical member names and SHA-256 content hashes.

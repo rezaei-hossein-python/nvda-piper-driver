@@ -2,6 +2,8 @@
 
 > Phases 2F–2G implement only the bounded synchronous subset in `fake-worker-protocol.md` and `mock-cancellation-and-generations.md`: handshake, job acknowledgement, metadata-only cancellation/fake results, errors, and shutdown using direct in-process calls. They provide no child process, IPC transport, model/runtime, streaming, PCM, actual cancellation, notification, health, or timing evidence. This broader design and the runtime ADR remain Proposed.
 
+> Phase 2J does not promote that fake protocol to production. Its controller deliberately reuses the Phase 2I one-shot standard-input/standard-output framing, adds local generation and bridge cancellation tokens, and terminates stale children. A persistent handshake, model-load protocol, streaming, health, restart, and production cancellation design remain unresolved.
+
 ## Status and boundary
 
 The worker is Proposed and benchmark-dependent. NVDA owns one child process; the child never listens on a network interface, launches commands, accesses arbitrary paths, or outlives its parent intentionally. Native runtime/model parsing occurs behind this crash boundary, but the worker is not trusted to send well-formed data.
