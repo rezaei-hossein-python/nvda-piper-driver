@@ -1,8 +1,8 @@
-# Phase 2F fake-worker protocol
+# Bounded fake-worker protocol
 
 ## Purpose and boundary
 
-Phase 2F implements a bounded protocol model and deterministic fake worker in one Python process. The fake worker is a synchronous state-machine test double, not an operating-system worker, IPC transport, Piper abstraction, or architecture acceptance result. It creates no subprocess, thread, queue, pipe, socket, shared memory, model, PCM, audio, or notification. `SynthDriver.speak()` remains disconnected and no speech is produced.
+Phase 2F implemented the bounded protocol base and Phase 2G adds only synchronous cancellation/generation state and metadata-only fake results. The deterministic fake worker remains in one Python process. It is a state-machine test double, not an operating-system worker, IPC transport, Piper abstraction, or architecture acceptance result. It creates no subprocess, thread, queue, pipe, socket, shared memory, model, PCM, audio, synthesis, timing, or NVDA notification. `SynthDriver.speak()` remains disconnected, `SynthDriver.cancel()` is not implemented, and no speech is produced. Phase 2G details are in `mock-cancellation-and-generations.md`.
 
 The implementation consists of `synthDrivers/_nvdaPiperDriver/protocol.py` and `fakeWorker.py`. The underscore package remains excluded from NVDA synth discovery by pinned `synthDriverHandler.getSynthList`.
 
@@ -38,11 +38,13 @@ Identifiers are exact integers, excluding `bool`, bounded to `1..2^63-1`, contai
 |---|---|---|
 | `HelloRequest` | `HelloResponse` | Empty request; response has fixed capabilities. |
 | `SubmitJobRequest` | `JobAcceptedResponse` | Generation ID, job ID, and explicitly serialized `SpeechJob`; response repeats IDs. |
+| `CancelGenerationRequest` | `CancelGenerationResponse` | Generation ID and whether cancellation changed state. |
+| `FakeResultRequest` | `FakeResultResponse` | Generation, job, and result IDs plus a metadata-only status. |
 | `ShutdownRequest` | `ShutdownResponse` | Empty payload. |
 
 `ErrorResponse` correlates the rejected valid request by session, sequence, and request ID. Response envelope sequence numbers mirror requests; no asynchronous response ordering exists.
 
-No load/unload, synthesis completion, PCM, index event, pause, resume, cancellation, health, heartbeat, warning, restart, streaming, or notification message exists.
+No load/unload, synthesis completion, PCM, index event, pause, resume, health, heartbeat, warning, restart, streaming, or notification message exists. Cancellation changes fake metadata only.
 
 ## Session and sequence state
 
@@ -59,12 +61,13 @@ Malformed frames and schema failures raise `ProtocolException` before fake-worke
 
 ## Capabilities
 
-`HelloResponse` contains a fixed frozen `Capabilities` record with ten fields, the maximum allowed in Phase 2F:
+`HelloResponse` contains a fixed frozen `Capabilities` record with ten fields:
 
 - protocol version 1;
-- identity `NVDA Piper Driver Phase 2F fake worker`;
+- identity `NVDA Piper Driver Phase 2G fake worker`;
 - accepts immutable speech jobs: true;
-- synthesis, audio, cancellation, pause, models, streaming, and notifications: false.
+- cancellation-state modelling: true;
+- synthesis, audio, pause, models, streaming, and notifications: false.
 
 These flags describe only what the fake accepts structurally. Job acceptance does not imply execution or support for the job's commands.
 
@@ -78,7 +81,7 @@ The fake worker validates and accepts a fully decoded immutable job, returns `Jo
 
 These conservative test constants are centralized in `protocol.py`; they are not measured release requirements:
 
-| Limit | Phase 2F value | Rationale |
+| Limit | Current provisional value | Rationale |
 |---|---:|---|
 | Encoded frame | 65,536 bytes | Small enough for deterministic parser tests while allowing representative Unicode jobs. Checked before decoding. |
 | Nesting depth | 8 | Covers the fixed envelope/job/item schema with limited surplus. Enforced after bounded decode. |
@@ -89,7 +92,7 @@ These conservative test constants are centralized in `protocol.py`; they are not
 | Phoneme fallback | 4,096 code points | Matches ordinary text-item bound. |
 | Language | 64 code points | Sufficient for locale tags used in tests. |
 | Voice ID | 128 code points | Sufficient for stable internal identifiers. |
-| Capability fields | 10 | Exact fixed Phase 2F capability schema. |
+| Capability fields | 10 | Exact fixed Phase 2G capability schema. |
 | Error message | 160 code points | Keeps returned diagnostics concise and non-content-bearing. |
 | Numeric identifiers | `1..2^63-1` | Matches Phase 2E positive identifier bound. |
 
@@ -103,7 +106,7 @@ Decoder and schema errors raise `ProtocolException`; valid request envelopes rej
 
 ## Privacy and verification
 
-Text-bearing job/request/error fields are protected from generated representations where applicable. Encoding necessarily produces caller-requested text bytes, but neither codec nor fake worker logs, hashes, persists, or globally stores them. Fake-worker state contains only session/sequence flags, fixed capabilities, and sets of accepted numeric request/job IDs.
+Text-bearing job/request/error fields are protected from generated representations where applicable. Encoding necessarily produces caller-requested text bytes, but neither codec nor fake worker logs, hashes, persists, or globally stores them. Fake-worker state contains only session/sequence flags, fixed capabilities, bounded numeric generation/job/result metadata, and Boolean shutdown state.
 
 Tests cover frozen records, all message/item round trips, deterministic UTF-8, Persian and mixed Unicode, `None`/empty distinctions, duplicate keys, BOM, invalid encoding/JSON, trailing data, non-finite numbers, strict fields/types/ranges, depth and size limits, handshake/session/sequence behavior, duplicate detection, correlation, no job mutation/retention, shutdown, redacted representations, and forbidden imports.
 
@@ -111,9 +114,9 @@ Tests cover frozen records, all message/item round trips, deterministic UTF-8, P
 
 - No real transport, process boundary, framing prefix, timeout, crash isolation, or OS access control has been tested.
 - JSON memory behavior is bounded only by the pre-decode frame size in this prototype.
-- Generation IDs are correlation data only; Phase 2G must define cancellation/stale-generation semantics.
-- Request/job metadata sets grow until shutdown and need a measured bound or eviction rule before long-running use.
+- Generation and tracking semantics are provisional test rules, not a production cancellation contract.
+- Bounded metadata remains until shutdown; a future long-running implementation needs a measured eviction/lifetime policy.
 - Private Phase 2E prosody storage remains pinned-version-sensitive.
 - The runtime ADR remains **Proposed**.
 
-Phase 2G may add mock cancellation and stale-generation behavior around fake protocol/audio test doubles, but must not reinterpret Phase 2F as real IPC or begin Piper, ONNX Runtime, model, PCM, or production audio integration.
+Phase 2H may integrate and benchmark one verified Piper runtime for standalone synthesis outside NVDA, without connecting it to the NVDA driver. It must not reinterpret this fake protocol as real IPC or claim production cancellation/audio behavior.

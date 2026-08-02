@@ -4,9 +4,9 @@ An open-source NVDA synthesizer add-on for running Piper-compatible neural voice
 
 ## Project status
 
-**Phase 2F bounded protocol validation is implemented with an in-process fake worker for development testing only.** The driver remains unavailable by default, and `speak()` is disconnected from both jobs and protocol. The fake worker has no subprocess, transport, runtime, model, PCM, audio, or synthesis behavior.
+**Phase 2G mock cancellation and stale-generation invalidation are implemented for development testing only.** The protocol and fake worker remain synchronous and in-process; fake results are metadata-only test events. The driver remains unavailable by default, `speak()` stays disconnected, `cancel()` is not implemented, and no speech, NVDA notification, PCM, audio, model, runtime, subprocess, or transport exists.
 
-Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2F established packaging, the unavailable-by-default driver, mock lifecycle/settings, immutable jobs, and a synchronous fake protocol boundary. Phase 2G—mock cancellation and stale-generation behavior—is the sole next milestone.
+Phases 1A–1C documented NVDA's interface, evaluated runtime and release constraints, and defined a mock-first implementation sequence. Phases 2A–2G established packaging, the unavailable-by-default driver, mock lifecycle/settings, immutable jobs, bounded protocol validation, and synchronous cancellation-state tests. Phase 2H—verified standalone Piper synthesis outside NVDA—is the sole next milestone.
 
 ## Why this project exists
 
@@ -101,6 +101,7 @@ See [`docs/roadmap.md`](docs/roadmap.md).
 - [`docs/mock-lifecycle-and-settings.md`](docs/mock-lifecycle-and-settings.md)
 - [`docs/speech-job-conversion.md`](docs/speech-job-conversion.md)
 - [`docs/fake-worker-protocol.md`](docs/fake-worker-protocol.md)
+- [`docs/mock-cancellation-and-generations.md`](docs/mock-cancellation-and-generations.md)
 - [`docs/research-source-register.md`](docs/research-source-register.md)
 - [`docs/repository-quality-review.md`](docs/repository-quality-review.md)
 - [`docs/imported/source-notes.md`](docs/imported/source-notes.md)

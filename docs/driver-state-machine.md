@@ -2,6 +2,8 @@
 
 > This document remains the proposed production model. Phase 2D implements only private `initializing`, `ready`, and `terminated` mock states, with none of the runtime meanings or resources described below. See `mock-lifecycle-and-settings.md`.
 
+> Phase 2G validates only synchronous in-process generation and cancellation metadata in the fake worker. It does not implement this controller state machine, driver `cancel()`, audio stopping, timing, or NVDA notifications. The runtime ADR remains Proposed.
+
 ## Status and authority
 
 This is a Proposed Phase 1C design, not an implemented API. NVDA obligations derive from `docs/nvda-synthdriver-research.md` and pinned symbols `synthDriverHandler.SynthDriver`, `SpeechManager`, and the built-in drivers. Runtime behavior remains benchmark-dependent.

@@ -1,4 +1,4 @@
-"""Bounded Phase 2F protocol values and strict JSON serialization."""
+"""Bounded Phase 2G protocol values and strict JSON serialization."""
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -32,6 +32,11 @@ MAX_LANGUAGE_CODEPOINTS = 64
 MAX_VOICE_ID_CODEPOINTS = 128
 MAX_CAPABILITY_FIELDS = 10
 MAX_ERROR_MESSAGE_CODEPOINTS = 160
+MAX_TRACKED_REQUESTS = 2_048
+MAX_TRACKED_GENERATIONS = 64
+MAX_TRACKED_JOBS = 256
+MAX_TRACKED_RESULTS = 512
+MAX_CANCELLED_GENERATIONS = 32
 
 
 class MessageType(Enum):
@@ -39,6 +44,10 @@ class MessageType(Enum):
 	HELLO_RESPONSE = "helloResponse"
 	SUBMIT_JOB_REQUEST = "submitJobRequest"
 	JOB_ACCEPTED_RESPONSE = "jobAcceptedResponse"
+	CANCEL_GENERATION_REQUEST = "cancelGenerationRequest"
+	CANCEL_GENERATION_RESPONSE = "cancelGenerationResponse"
+	FAKE_RESULT_REQUEST = "fakeResultRequest"
+	FAKE_RESULT_RESPONSE = "fakeResultResponse"
 	SHUTDOWN_REQUEST = "shutdownRequest"
 	SHUTDOWN_RESPONSE = "shutdownResponse"
 	ERROR_RESPONSE = "errorResponse"
@@ -62,6 +71,11 @@ class ErrorCode(Enum):
 	INVALID_SEQUENCE = "invalidSequence"
 	DUPLICATE_REQUEST = "duplicateRequest"
 	DUPLICATE_JOB = "duplicateJob"
+	GENERATION_STALE = "generationStale"
+	GENERATION_CANCELLED = "generationCancelled"
+	GENERATION_UNKNOWN = "generationUnknown"
+	GENERATION_OUT_OF_ORDER = "generationOutOfOrder"
+	TRACKING_LIMIT_EXCEEDED = "trackingLimitExceeded"
 	WORKER_SHUT_DOWN = "workerShutDown"
 	UNSUPPORTED_JOB_ITEM = "unsupportedJobItem"
 	JOB_SIZE_LIMIT_EXCEEDED = "jobSizeLimitExceeded"
@@ -94,11 +108,11 @@ class Envelope:
 @dataclass(frozen=True, slots=True)
 class Capabilities:
 	protocolVersion: int = PROTOCOL_VERSION
-	workerIdentity: str = "NVDA Piper Driver Phase 2F fake worker"
+	workerIdentity: str = "NVDA Piper Driver Phase 2G fake worker"
 	acceptsSpeechJobs: bool = True
 	synthesis: bool = False
 	audio: bool = False
-	cancellation: bool = False
+	cancellation: bool = True
 	pause: bool = False
 	models: bool = False
 	streaming: bool = False
@@ -132,6 +146,44 @@ class JobAcceptedResponse:
 
 
 @dataclass(frozen=True, slots=True)
+class CancelGenerationRequest:
+	envelope: Envelope
+	generationId: int
+
+
+@dataclass(frozen=True, slots=True)
+class CancelGenerationResponse:
+	envelope: Envelope
+	generationId: int
+	changedState: bool
+
+
+class FakeResultStatus(Enum):
+	ACCEPTED_CURRENT = "acceptedCurrent"
+	STALE_GENERATION = "staleGeneration"
+	CANCELLED_GENERATION = "cancelledGeneration"
+	UNKNOWN_JOB = "unknownJob"
+	DUPLICATE = "duplicate"
+
+
+@dataclass(frozen=True, slots=True)
+class FakeResultRequest:
+	envelope: Envelope
+	generationId: int
+	jobId: int
+	resultId: int
+
+
+@dataclass(frozen=True, slots=True)
+class FakeResultResponse:
+	envelope: Envelope
+	generationId: int
+	jobId: int
+	resultId: int
+	status: FakeResultStatus
+
+
+@dataclass(frozen=True, slots=True)
 class ShutdownRequest:
 	envelope: Envelope
 
@@ -152,6 +204,10 @@ ProtocolMessage: TypeAlias = (
 	| HelloResponse
 	| SubmitJobRequest
 	| JobAcceptedResponse
+	| CancelGenerationRequest
+	| CancelGenerationResponse
+	| FakeResultRequest
+	| FakeResultResponse
 	| ShutdownRequest
 	| ShutdownResponse
 	| ErrorResponse
@@ -390,10 +446,10 @@ def _capabilitiesToWire(capabilities: Capabilities) -> dict[str, object]:
 	if len(result) > MAX_CAPABILITY_FIELDS:
 		raise _error(ErrorCode.INVALID_FIELD_VALUE, "capability count exceeds its limit")
 	if capabilities != Capabilities():
-		raise _error(ErrorCode.INVALID_FIELD_VALUE, "capabilities differ from the Phase 2F set")
+		raise _error(ErrorCode.INVALID_FIELD_VALUE, "capabilities differ from the Phase 2G set")
 	if capabilities.protocolVersion != PROTOCOL_VERSION:
 		raise _error(ErrorCode.UNSUPPORTED_PROTOCOL_VERSION, "capability protocol version is unsupported")
-	if capabilities.workerIdentity != "NVDA Piper Driver Phase 2F fake worker":
+	if capabilities.workerIdentity != "NVDA Piper Driver Phase 2G fake worker":
 		raise _error(ErrorCode.INVALID_FIELD_VALUE, "worker identity is invalid")
 	for key in result.keys() - {"protocolVersion", "workerIdentity"}:
 		_requireBoolean(result[key], key)
@@ -426,6 +482,10 @@ def _messageToWire(message: ProtocolMessage) -> dict[str, object]:
 		HelloResponse: MessageType.HELLO_RESPONSE,
 		SubmitJobRequest: MessageType.SUBMIT_JOB_REQUEST,
 		JobAcceptedResponse: MessageType.JOB_ACCEPTED_RESPONSE,
+		CancelGenerationRequest: MessageType.CANCEL_GENERATION_REQUEST,
+		CancelGenerationResponse: MessageType.CANCEL_GENERATION_RESPONSE,
+		FakeResultRequest: MessageType.FAKE_RESULT_REQUEST,
+		FakeResultResponse: MessageType.FAKE_RESULT_RESPONSE,
 		ShutdownRequest: MessageType.SHUTDOWN_REQUEST,
 		ShutdownResponse: MessageType.SHUTDOWN_RESPONSE,
 		ErrorResponse: MessageType.ERROR_RESPONSE,
@@ -450,7 +510,29 @@ def _messageToWire(message: ProtocolMessage) -> dict[str, object]:
 			"generationId": _requireInteger(message.generationId, "generationId"),
 			"jobId": _requireInteger(message.jobId, "jobId"),
 		}
-	else:
+	elif messageType is CancelGenerationRequest:
+		payload = {"generationId": _requireInteger(message.generationId, "generationId")}
+	elif messageType is CancelGenerationResponse:
+		payload = {
+			"generationId": _requireInteger(message.generationId, "generationId"),
+			"changedState": _requireBoolean(message.changedState, "changedState"),
+		}
+	elif messageType is FakeResultRequest:
+		payload = {
+			"generationId": _requireInteger(message.generationId, "generationId"),
+			"jobId": _requireInteger(message.jobId, "jobId"),
+			"resultId": _requireInteger(message.resultId, "resultId"),
+		}
+	elif messageType is FakeResultResponse:
+		if type(message.status) is not FakeResultStatus:
+			raise _error(ErrorCode.INVALID_FIELD_TYPE, "fake result status has an invalid type")
+		payload = {
+			"generationId": _requireInteger(message.generationId, "generationId"),
+			"jobId": _requireInteger(message.jobId, "jobId"),
+			"resultId": _requireInteger(message.resultId, "resultId"),
+			"status": message.status.value,
+		}
+	elif messageType is ErrorResponse:
 		if type(message.error) is not ProtocolError or type(message.error.code) is not ErrorCode:
 			raise _error(ErrorCode.INVALID_FIELD_TYPE, "error response is invalid")
 		if type(message.error.message) is not str or len(message.error.message) > MAX_ERROR_MESSAGE_CODEPOINTS:
@@ -563,6 +645,39 @@ def _decodeMessage(root: dict[str, object]) -> ProtocolMessage:
 			envelope,
 			_requireInteger(fields["generationId"], "generationId"),
 			_requireInteger(fields["jobId"], "jobId"),
+		)
+	if messageType is MessageType.CANCEL_GENERATION_REQUEST:
+		fields = _requireExactFields(payload, {"generationId"}, "cancel-generation payload")
+		return CancelGenerationRequest(envelope, _requireInteger(fields["generationId"], "generationId"))
+	if messageType is MessageType.CANCEL_GENERATION_RESPONSE:
+		fields = _requireExactFields(payload, {"generationId", "changedState"}, "cancel-generation response payload")
+		return CancelGenerationResponse(
+			envelope,
+			_requireInteger(fields["generationId"], "generationId"),
+			_requireBoolean(fields["changedState"], "changedState"),
+		)
+	if messageType is MessageType.FAKE_RESULT_REQUEST:
+		fields = _requireExactFields(payload, {"generationId", "jobId", "resultId"}, "fake-result payload")
+		return FakeResultRequest(
+			envelope,
+			_requireInteger(fields["generationId"], "generationId"),
+			_requireInteger(fields["jobId"], "jobId"),
+			_requireInteger(fields["resultId"], "resultId"),
+		)
+	if messageType is MessageType.FAKE_RESULT_RESPONSE:
+		fields = _requireExactFields(payload, {"generationId", "jobId", "resultId", "status"}, "fake-result response payload")
+		if type(fields["status"]) is not str:
+			raise _error(ErrorCode.INVALID_FIELD_TYPE, "fake result status must be a string")
+		try:
+			status = FakeResultStatus(fields["status"])
+		except ValueError:
+			raise _error(ErrorCode.INVALID_FIELD_VALUE, "fake result status is unknown") from None
+		return FakeResultResponse(
+			envelope,
+			_requireInteger(fields["generationId"], "generationId"),
+			_requireInteger(fields["jobId"], "jobId"),
+			_requireInteger(fields["resultId"], "resultId"),
+			status,
 		)
 	if messageType is MessageType.SHUTDOWN_REQUEST:
 		_requireExactFields(payload, set(), "shutdown payload")

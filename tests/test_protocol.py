@@ -59,6 +59,12 @@ class ProtocolTests(unittest.TestCase):
 			protocol.HelloResponse(envelope(protocol.MessageType.HELLO_RESPONSE), protocol.Capabilities()),
 			submitRequest(),
 			protocol.JobAcceptedResponse(envelope(protocol.MessageType.JOB_ACCEPTED_RESPONSE), 2, 1),
+			protocol.CancelGenerationRequest(envelope(protocol.MessageType.CANCEL_GENERATION_REQUEST), 2),
+			protocol.CancelGenerationResponse(envelope(protocol.MessageType.CANCEL_GENERATION_RESPONSE), 2, True),
+			protocol.FakeResultRequest(envelope(protocol.MessageType.FAKE_RESULT_REQUEST), 2, 1, 3),
+			protocol.FakeResultResponse(
+				envelope(protocol.MessageType.FAKE_RESULT_RESPONSE), 2, 1, 3, protocol.FakeResultStatus.ACCEPTED_CURRENT,
+			),
 			protocol.ShutdownRequest(envelope(protocol.MessageType.SHUTDOWN_REQUEST)),
 			protocol.ShutdownResponse(envelope(protocol.MessageType.SHUTDOWN_RESPONSE)),
 			protocol.ErrorResponse(envelope(protocol.MessageType.ERROR_RESPONSE), protocol.ProtocolError(protocol.ErrorCode.INVALID_SEQUENCE, "safe")),
@@ -98,6 +104,12 @@ class ProtocolTests(unittest.TestCase):
 			protocol.HelloResponse(envelope(protocol.MessageType.HELLO_RESPONSE), protocol.Capabilities()),
 			submitRequest(),
 			protocol.JobAcceptedResponse(envelope(protocol.MessageType.JOB_ACCEPTED_RESPONSE), 2, 1),
+			protocol.CancelGenerationRequest(envelope(protocol.MessageType.CANCEL_GENERATION_REQUEST), 2),
+			protocol.CancelGenerationResponse(envelope(protocol.MessageType.CANCEL_GENERATION_RESPONSE), 2, False),
+			protocol.FakeResultRequest(envelope(protocol.MessageType.FAKE_RESULT_REQUEST), 2, 1, 3),
+			protocol.FakeResultResponse(
+				envelope(protocol.MessageType.FAKE_RESULT_RESPONSE), 2, 1, 3, protocol.FakeResultStatus.DUPLICATE,
+			),
 			protocol.ShutdownRequest(envelope(protocol.MessageType.SHUTDOWN_REQUEST)),
 			protocol.ShutdownResponse(envelope(protocol.MessageType.SHUTDOWN_RESPONSE)),
 			protocol.ErrorResponse(envelope(protocol.MessageType.ERROR_RESPONSE), protocol.ProtocolError(protocol.ErrorCode.WRONG_SESSION, "safe")),
@@ -182,6 +194,47 @@ class ProtocolTests(unittest.TestCase):
 			target[path[-1]] = True
 			with self.subTest(path=path):
 				self.assertProtocolCode(protocol.ErrorCode.INVALID_FIELD_TYPE, protocol.decodeMessage, wireBytes(wrong))
+
+	def test_phase_2g_message_schemas_are_strict_and_content_free(self) -> None:
+		messages = (
+			protocol.CancelGenerationRequest(envelope(protocol.MessageType.CANCEL_GENERATION_REQUEST), 1),
+			protocol.CancelGenerationResponse(envelope(protocol.MessageType.CANCEL_GENERATION_RESPONSE), 1, True),
+			protocol.FakeResultRequest(envelope(protocol.MessageType.FAKE_RESULT_REQUEST), 1, 2, 3),
+			protocol.FakeResultResponse(
+				envelope(protocol.MessageType.FAKE_RESULT_RESPONSE), 1, 2, 3, protocol.FakeResultStatus.STALE_GENERATION,
+			),
+		)
+		for message in messages:
+			with self.subTest(messageType=type(message)):
+				wire = wireObject(message)
+				self.assertFalse({"text", "ipa", "fallbackText", "index", "audio", "pcm"} & set(wire["payload"]))
+				self.assertEqual(message, protocol.decodeMessage(protocol.encodeMessage(message)))
+				unknown = json.loads(json.dumps(wire))
+				unknown["payload"]["extra"] = 1
+				self.assertProtocolCode(protocol.ErrorCode.UNKNOWN_FIELD, protocol.decodeMessage, wireBytes(unknown))
+				for key, value in tuple(wire["payload"].items()):
+					missing = json.loads(json.dumps(wire))
+					missing["payload"].pop(key)
+					self.assertProtocolCode(protocol.ErrorCode.MISSING_FIELD, protocol.decodeMessage, wireBytes(missing))
+					if key.endswith("Id"):
+						for invalid in (True, 0, -1, protocol.MAX_IDENTIFIER + 1):
+							wrong = json.loads(json.dumps(wire))
+							wrong["payload"][key] = invalid
+							expected = protocol.ErrorCode.INVALID_FIELD_TYPE if invalid is True else protocol.ErrorCode.INVALID_FIELD_VALUE
+							self.assertProtocolCode(expected, protocol.decodeMessage, wireBytes(wrong))
+
+		badStatus = wireObject(
+			protocol.FakeResultResponse(
+				envelope(protocol.MessageType.FAKE_RESULT_RESPONSE), 1, 2, 3, protocol.FakeResultStatus.DUPLICATE,
+			),
+		)
+		badStatus["payload"]["status"] = "futureStatus"
+		self.assertProtocolCode(protocol.ErrorCode.INVALID_FIELD_VALUE, protocol.decodeMessage, wireBytes(badStatus))
+		badChangedState = wireObject(
+			protocol.CancelGenerationResponse(envelope(protocol.MessageType.CANCEL_GENERATION_RESPONSE), 1, True),
+		)
+		badChangedState["payload"]["changedState"] = 1
+		self.assertProtocolCode(protocol.ErrorCode.INVALID_FIELD_TYPE, protocol.decodeMessage, wireBytes(badChangedState))
 
 	def test_job_limits_are_enforced(self) -> None:
 		tooMany = sampleJob(*(TextItem("") for _ in range(protocol.MAX_JOB_ITEMS + 1)))

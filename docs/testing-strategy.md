@@ -35,6 +35,8 @@ Phase 2E adds pure tests for frozen job/item records, exact list input, exact dr
 
 Phase 2F tests immutable protocol values, deterministic UTF-8 JSON, explicit item schemas, frame/depth/text/phoneme bounds, malformed encoding/JSON and duplicate keys, non-finite numbers, handshake/session/sequence invariants, request/job correlation and duplication, metadata-only retention, state-error behavior, and irreversible fake shutdown. These synchronous tests contain no IPC, timing, process, PCM, or audio evidence.
 
+Phase 2G adds deterministic synchronous loops for contiguous generation progression, idempotent cancellation, stale/cancelled/unknown/duplicate fake-result statuses, atomic request/generation/job/result/cancellation tracking limits, privacy, and shutdown. Fake results contain numeric metadata only. The tests use no sleeps, clocks, threads, queues, transport, synthesis, audio, or performance claims.
+
 ### Accessibility acceptance
 
 Execute `docs/accessibility-acceptance-criteria.md` with keyboard and NVDA: focus/order/names/states, validation and recovery, manual model import, progress/cancel, first run, restart prompts, help navigation, localization, and announcement rate.

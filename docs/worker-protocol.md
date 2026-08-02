@@ -1,6 +1,6 @@
 # Proposed worker protocol
 
-> Phase 2F implements only the bounded synchronous subset in `fake-worker-protocol.md`: hello, submit acknowledgement, error, and shutdown messages using direct in-process calls. It provides no child process, IPC transport, model/runtime, streaming, PCM, cancellation, notification, health, or timing evidence. This broader design and the runtime ADR remain Proposed.
+> Phases 2F–2G implement only the bounded synchronous subset in `fake-worker-protocol.md` and `mock-cancellation-and-generations.md`: handshake, job acknowledgement, metadata-only cancellation/fake results, errors, and shutdown using direct in-process calls. They provide no child process, IPC transport, model/runtime, streaming, PCM, actual cancellation, notification, health, or timing evidence. This broader design and the runtime ADR remain Proposed.
 
 ## Status and boundary
 

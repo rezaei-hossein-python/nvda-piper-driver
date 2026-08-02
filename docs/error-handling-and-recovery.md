@@ -1,5 +1,7 @@
 # Error handling and recovery
 
+> Phase 2G implements only bounded fake-worker generation errors and metadata-only result statuses. It performs no retry, timeout, restart, audible cancellation, driver recovery, or user notification.
+
 ## Policy
 
 Stable error codes cross layers; exceptions do not. Severity is `info`, `recoverable`, `driverUnavailable`, or `internalFatal`. Retry only idempotent operations, with bounded exponential delay off NVDA's main thread. Default circuit breaker: one automatic worker restart for an isolated crash/hang, then open after repeated failure in the same session; exact window/timeouts require experiments. User action may create a new attempt, but never a tight loop.

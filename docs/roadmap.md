@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Phase 2F complete — a bounded strict-JSON protocol and synchronous in-process fake worker validate handshake, correlation, errors, and shutdown without transport or execution. Next: Phase 2G, mock cancellation and stale-generation behavior. No speech, Piper runtime, or public release exists.**
+**Phase 2G complete — synchronous in-process tests validate bounded cancellation state and metadata-only stale-result rejection without execution, timing, audio, notifications, or driver integration. Next: Phase 2H, verified standalone Piper synthesis outside NVDA. No working NVDA speech or public release exists.**
 
 ## Milestones
 
@@ -25,7 +25,7 @@
 - [x] Phase 2D: prove minimal lifecycle and settings initialization with mocks.
 - [x] Phase 2E: prove immutable, ordered, privacy-preserving speech-job conversion.
 - [x] Phase 2F: prove bounded protocol, fake handshake, sequencing, correlation, errors, and shutdown in process.
-- [ ] Phase 2G: prove cancellation and stale rejection with mocks.
+- [x] Phase 2G: prove bounded synchronous cancellation and stale fake-result rejection with mocks.
 - [ ] Phase 2H–2J: integrate a verified standalone runtime, first NVDA audio, cancellation, indexes, and completion.
 - [x] Make the unavailable driver module discoverable by NVDA's loader while excluding it from selection.
 - [ ] Select and validate a Piper runtime integration.

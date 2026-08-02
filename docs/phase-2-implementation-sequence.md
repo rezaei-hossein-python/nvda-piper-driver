@@ -69,7 +69,7 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2F — Fake-worker protocol prototype
 
-**Complete. Phase 2G is the sole next milestone.**
+**Complete.**
 
 - **Objective:** validate bounded serialization, immutable envelopes, session/handshake, correlation, controlled errors, and shutdown with a synchronous in-process fake worker.
 - **Allowed:** pure protocol values, strict standard-library serialization, direct fake-worker state machine, and focused unit tests.
@@ -81,19 +81,21 @@ Mock-first development proves lifecycle, cancellation, protocol, and stale-event
 
 ## Phase 2G — Cancellation and stale-generation behavior
 
-**Next milestone. Do not start other Phase 2 work concurrently.**
+**Complete. Phase 2H is the sole next milestone.**
 
-- **Objective:** prove generation invalidation end to end with fake worker/audio.
-- **Allowed:** controller/job/protocol fake-player integration and stress tests.
-- **Forbidden:** real TTS/native audio claims.
-- **Tests:** cancel at every phase, rapid replacement, late/duplicate/out-of-order PCM/index/done, one outcome, circuit breaker.
-- **Manual:** mock NVDA navigation stress; inspect announcements/log redaction.
-- **Docs/commit:** update state/job/error evidence; `Reject stale speech after cancellation`.
-- **Exit:** deterministic stress suite has no stale delivery or leaks. Stop.
+- **Objective:** prove contiguous generation invalidation, idempotent cancellation, and stale metadata rejection in the synchronous in-process fake worker.
+- **Allowed:** immutable cancellation/fake-result messages, bounded numeric tracking state, and deterministic stress tests.
+- **Forbidden:** real execution, timing, transport, subprocesses, threads, queues, Piper/ORT/models, PCM/audio, NVDA notifications, and driver integration.
+- **Tests:** progression, cancellation repetition, stale/cancelled/unknown/duplicate fake results, atomic tracking limits, privacy, and irreversible shutdown.
+- **Manual:** no real NVDA validation; inspect source/archive boundaries because `SynthDriver.speak()` remains disconnected and `cancel()` is unimplemented.
+- **Docs/commit:** record provisional generation semantics and limits; `Model mock cancellation and stale generations`.
+- **Exit:** deterministic bounded state tests accept no stale result as current and retain no speech content. Stop.
 
 ## Phase 2H — Verified Piper standalone synthesis
 
-- **Objective:** acquire/build separately and integrate one reviewed Piper runtime/model in the standalone worker only.
+**Next milestone. Do not start other Phase 2 work concurrently.**
+
+- **Objective:** integrate and benchmark one verified Piper runtime for standalone synthesis outside NVDA, without connecting it to the NVDA driver.
 - **Allowed:** pinned dependency acquisition/build design, inventory/notices/SBOM, standalone worker backend and marked tests.
 - **Forbidden:** committing downloaded model/binary until separately authorized; NVDA audio/speech integration.
 - **Tests:** provenance/hash/schema/load/synthesize/shutdown/fault/resource and baseline measurements.

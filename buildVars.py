@@ -27,7 +27,7 @@ addon_info = AddonInfo(
 	addon_licenseURL="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
 )
 
-# Phase 2F packages the unavailable driver plus pure conversion/protocol test support.
+# Phase 2G packages the unavailable driver plus pure conversion/protocol test support.
 pythonSources: list[str] = [
 	"addon/synthDrivers/nvdaPiperDriver.py",
 	"addon/synthDrivers/_nvdaPiperDriver/*.py",

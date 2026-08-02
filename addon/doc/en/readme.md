@@ -2,7 +2,7 @@
 
 ## Development status
 
-This development-validation package contains a minimal synthesizer-driver module with a controlled test-only availability gate. It is unavailable by default and normal users cannot enable it through add-on settings. Its private pure converter and bounded in-process fake protocol are disconnected from `speak()`. The fake worker is not a process or IPC transport and does not queue or execute jobs. The package includes no Piper runtime, model, PCM, audio output, cancellation, notification, or model installation functionality.
+This development-validation package contains a minimal synthesizer-driver module with a controlled test-only availability gate. It is unavailable by default and normal users cannot enable it through add-on settings. Its private pure converter and bounded in-process fake protocol are disconnected from `speak()`. Phase 2G cancellation is only synchronous state modelling with metadata-only fake results; `SynthDriver.cancel()` and NVDA notifications are not implemented. The fake worker is not a process or IPC transport and does not queue or execute jobs. The package includes no Piper runtime, model, synthesis, PCM, audio output, or model installation functionality.
 
 There is no public release. This package is not intended for everyday use and does not indicate acceptance by the NVDA Add-on Store.
 

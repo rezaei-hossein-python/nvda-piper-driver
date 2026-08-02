@@ -4,6 +4,8 @@
 
 > Phase 2F adds a pre-decode byte limit, strict UTF-8/JSON/schema validation, duplicate-key and non-finite-number rejection, bounded fields, and metadata-only fake-worker state. This reduces parser and retention risk in the in-process prototype only; no transport ACL, process containment, crash isolation, or formal security claim exists.
 
+> Phase 2G bounds request, generation, job, cancellation, and fake-result metadata and rejects stale/cancelled results without storing their payload because fake results contain IDs only. This is deterministic state validation, not evidence of real cancellation, timing, IPC security, audio safety, or NVDA notification correctness.
+
 ## Scope, assets, and boundaries
 
 This is defensive design, not certification or legal clearance. Assets: NVDA availability, user text, local files/configuration/models, audio privacy/integrity, process and release integrity, and user trust. Boundaries: NVDA core ↔ add-on; add-on ↔ child IPC; worker ↔ native Piper/eSpeak/ONNX Runtime; runtime ↔ model/config; managed data ↔ temporary storage; repository/release pipeline ↔ installed asset; and a future downloader ↔ network/catalogue. Secure-screen use is unsupported.

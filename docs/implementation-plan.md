@@ -78,13 +78,13 @@ Exit criteria:
 - Phase 2 can proceed milestone by milestone without inventing architecture in code;
 - the runtime ADR remains Proposed; at Phase 1C completion, implementation had not begun.
 
-See `docs/phase-2-implementation-sequence.md`. Phases 2A–2F are complete; the immediate next milestone is Phase 2G only.
+See `docs/phase-2-implementation-sequence.md`. Phases 2A–2G are complete; the immediate next milestone is Phase 2H only.
 
 ## Phase 2 — Minimal add-on and driver skeleton
 
 This summary is superseded for execution by the separate Phase 2A–2J stop-gated sequence. Do not combine its milestones.
 
-Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver. Phase 2C added the exact test-only gate, Phase 2D mock lifecycle/settings, and Phase 2E immutable jobs. Phase 2F added only strict serialization and a synchronous in-process fake-worker state machine; there is no subprocess, transport, job execution, or Piper runtime. Phase 2G may add only mock cancellation and stale-generation behavior.
+Phase 2A produced the initial package described in `docs/build-and-package.md`. Phase 2B added only a minimal unavailable driver. Phase 2C added the exact test-only gate, Phase 2D mock lifecycle/settings, and Phase 2E immutable jobs. Phase 2F added strict serialization and a synchronous in-process fake-worker state machine. Phase 2G added only synchronous cancellation/generation state and metadata-only fake-result tests. There is still no subprocess, transport, job execution, Piper runtime, audio, or driver integration. Phase 2H may integrate and benchmark one verified Piper runtime for standalone synthesis outside NVDA, without connecting it to the NVDA driver.
 
 Deliverables:
 

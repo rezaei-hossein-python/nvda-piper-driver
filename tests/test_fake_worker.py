@@ -58,9 +58,10 @@ class FakeWorkerTests(unittest.TestCase):
 		self.assertEqual(response.envelope.requestId, 1)
 		self.assertEqual(response.envelope.sequenceNumber, 1)
 		self.assertEqual(protocol.PROTOCOL_VERSION, response.capabilities.protocolVersion)
-		self.assertEqual("NVDA Piper Driver Phase 2F fake worker", response.capabilities.workerIdentity)
+		self.assertEqual("NVDA Piper Driver Phase 2G fake worker", response.capabilities.workerIdentity)
 		self.assertTrue(response.capabilities.acceptsSpeechJobs)
-		for fieldName in ("synthesis", "audio", "cancellation", "pause", "models", "streaming", "notifications"):
+		self.assertTrue(response.capabilities.cancellation)
+		for fieldName in ("synthesis", "audio", "pause", "models", "streaming", "notifications"):
 			self.assertIs(getattr(response.capabilities, fieldName), False)
 		with self.assertRaises(FrozenInstanceError):
 			response.capabilities.audio = True
@@ -98,14 +99,14 @@ class FakeWorkerTests(unittest.TestCase):
 		worker = FakeWorker()
 		self.hello(worker)
 		private = "PRIVATE_WORKER_TEXT"
-		submittedJob = job(jobId=4, generationId=9, text=private)
+		submittedJob = job(jobId=4, generationId=1, text=private)
 		before = submittedJob
 		response = exchange(worker, submit(2, 2, submittedJob))
 		self.assertEqual(before, submittedJob)
 		self.assertIsInstance(response, protocol.JobAcceptedResponse)
-		self.assertEqual((2, 2, 9, 4), (response.envelope.sequenceNumber, response.envelope.requestId, response.generationId, response.jobId))
+		self.assertEqual((2, 2, 1, 4), (response.envelope.sequenceNumber, response.envelope.requestId, response.generationId, response.jobId))
 		self.assertEqual({1, 2}, worker._acceptedRequestIds)
-		self.assertEqual({4}, worker._acceptedJobIds)
+		self.assertEqual({4: 1}, worker._acceptedJobs)
 		self.assertNotIn(private, repr(worker.__dict__))
 		self.assertFalse(any(isinstance(value, SpeechJob) for value in worker.__dict__.values()))
 
@@ -171,7 +172,7 @@ class FakeWorkerTests(unittest.TestCase):
 		forbiddenRoots = {
 			"asyncio", "audio", "ctypes", "http", "multiprocessing", "onnxruntime",
 			"os", "pathlib", "piper", "queue", "requests", "socket", "subprocess",
-			"threading", "urllib",
+			"threading", "time", "urllib",
 		}
 		for modulePath in modulePaths:
 			tree = ast.parse(modulePath.read_text(encoding="utf-8"), filename=str(modulePath))
