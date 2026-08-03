@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/nvaccess/nvda.git",
+  "releaseVersion": "2026.1.1",
+  "officialTag": "release-2026.1",
+  "tagType": "annotated",
+  "tagObjectSha": "ab7c86b3b290554b02c96f87b8eefe752c86fd3d",
+  "commitSha": "ae21324abe670192364c6e025e21e3b20eb529bb",
+  "portableExecutableVersion": "2026.1.1.55980",
+  "portableArchitecture": "AMD64",
+  "portableReleaseChannel": "stable",
+  "portablePythonVersion": "not exposed by executable metadata; source release uses its pinned build environment",
+  "retrievedUtc": "2026-08-03",
+  "sourceMethod": "git clone followed by detached checkout and required submodule initialization",
+  "verification": "portable file version matches release-2026.1 stable build; official tag peeled commit matches checkout"
+}

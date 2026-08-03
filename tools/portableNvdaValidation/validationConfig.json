@@ -1,0 +1,30 @@
+{
+  "portableRoot": "D:\\NVDA",
+  "configs": {
+    "control": {
+      "configPath": "D:\\NVDA\\phase2lControl",
+      "backend": "control",
+      "cache": false
+    },
+    "cache": {
+      "configPath": "D:\\NVDA\\phase2lCache",
+      "backend": "cache",
+      "cache": true
+    }
+  },
+  "tests": [
+    "startup",
+    "character",
+    "editBox",
+    "navigation",
+    "document",
+    "cancellation",
+    "switching",
+    "shutdown"
+  ],
+  "timeoutsSeconds": {
+    "startup": 30,
+    "scenario": 60,
+    "shutdown": 15
+  }
+}

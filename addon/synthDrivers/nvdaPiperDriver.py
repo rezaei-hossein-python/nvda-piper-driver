@@ -8,6 +8,7 @@ from enum import Enum
 import os
 from pathlib import Path
 import threading
+import time
 
 import config
 from logHandler import log
@@ -38,12 +39,14 @@ from synthDrivers._nvdaPiperDriver.jobs import (
 	TextItem,
 )
 from synthDrivers._nvdaPiperDriver.runtimeBridge import PersistentRuntimeBridge, readModelLanguage, validateRuntimePaths
+from synthDrivers._nvdaPiperDriver.latencyMetrics import LatencyRecorder, LatencyTrace
 
 _TEST_ONLY_MARKER_ENV = "NVDA_PIPER_DRIVER_TEST_ONLY_MOCK_RUNTIME"
 _TEST_ONLY_MARKER_VALUE = "phase-2c-explicit-local-mock-runtime-6f4d1c8a"
 _RUNTIME_PATH_ENV = "NVDA_PIPER_RUNTIME_PYTHON"
 _MODEL_PATH_ENV = "NVDA_PIPER_MODEL_PATH"
 _CONFIG_PATH_ENV = "NVDA_PIPER_CONFIG_PATH"
+_LATENCY_TRACE_ENV = "NVDA_PIPER_LATENCY_TRACE"
 _MOCK_VOICE_ID = "configuredModel"
 _DEFAULT_RATE = 50
 
@@ -113,6 +116,7 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		self._player: nvwave.WavePlayer | None = None
 		self._audioLock = threading.Lock()
 		self._speechRejectionReported = False
+		self._latencyRecorder = LatencyRecorder()
 		super().__init__()
 		self._controller = BackgroundController(
 			self._runtimeBridge,
@@ -237,6 +241,7 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 	def speak(self, speechSequence) -> None:
 		"""Submit one bounded utterance without waiting for runtime or playback."""
 		self._requireReady()
+		entryNs = time.monotonic_ns()
 		try:
 			job = self._createSpeechJob(speechSequence)
 			segments = self._buildSegments(job)
@@ -250,11 +255,14 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 			self._completeRejectedIndexes(speechSequence)
 			return
 		self._speechRejectionReported = False
+		trace = LatencyTrace(job.jobId, job.generationId)
+		trace.mark("speakEntry", entryNs)
 		if getattr(self._controller, "active", False):
 			with self._audioLock:
 				if self._player is not None:
 					self._player.stop()
-		self._controller.submit(BackgroundRequest(job.generationId, job.jobId, segments))
+		self._controller.submit(BackgroundRequest(job.generationId, job.jobId, segments, trace))
+		trace.mark("speakReturn")
 
 	def _completeRejectedIndexes(self, speechSequence: object) -> None:
 		"""Consume real NVDA indexes when a request is rejected before submission."""
@@ -287,14 +295,32 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 			with self._audioLock:
 				if not self._controller.isCurrent(result.generationId):
 					return False
+				if offset == 0:
+					# The first feed is the closest available objective proxy for
+					# device playback onset in the NVDA audio API.
+					trace = getattr(result, "latencyTrace", None)
+					if trace is not None:
+						trace.mark("firstWavePlayerFeed")
 				player.feed(result.pcm[offset : offset + chunkBytes])
-		if not self._controller.isCurrent(result.generationId):
-			return False
 		player.idle()
-		return self._controller.isCurrent(result.generationId)
+		current = self._controller.isCurrent(result.generationId)
+		trace = getattr(result, "latencyTrace", None)
+		if trace is not None:
+			trace.mark("playbackDrainComplete")
+			self._latencyRecorder.record(trace)
+			if os.environ.get(_LATENCY_TRACE_ENV) == "1":
+				debug = getattr(log, "debug", None)
+				if debug is not None:
+					debug(
+						"NVDA Piper latency request=%d generation=%d timestamps=%s",
+						trace.requestId,
+						trace.generationId,
+						trace.snapshot(),
+					)
+		return current
 
 	def cancel(self) -> None:
-		"""Perform safe teardown only; active inference cancellation is not claimed."""
+		"""Stop local playback and invalidate active synthesis."""
 		if self._state is _MockLifecycleState.TERMINATED:
 			return
 		self._controller.cancel()

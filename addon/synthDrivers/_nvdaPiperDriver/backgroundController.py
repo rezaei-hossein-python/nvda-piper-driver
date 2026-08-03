@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 import threading
 from typing import Final
 
 from .runtimeBridge import PcmResult, RuntimeBridgeCancelled, RuntimeBridgeError
+from .latencyMetrics import LatencyTrace
 
 
 CONTROLLER_JOIN_TIMEOUT_SECONDS: Final = 3
@@ -37,6 +38,7 @@ class BackgroundRequest:
 	generationId: int
 	jobId: int
 	segments: tuple[SynthesisSegment, ...]
+	trace: LatencyTrace | None = field(default=None, repr=False, compare=False)
 
 	@property
 	def text(self) -> str:
@@ -112,6 +114,8 @@ class BackgroundController:
 				and not self._activeShortRequest
 			)
 			self._currentGeneration = request.generationId
+			if request.trace is not None:
+				request.trace.mark("controllerSubmit")
 			self._pending = request
 			self._condition.notify()
 		if interrupt:
@@ -182,6 +186,8 @@ class BackgroundController:
 				)
 				self._state = ControllerState.ACTIVE
 			try:
+				if request.trace is not None:
+					request.trace.mark("controllerStart")
 				if not self._isRequestCurrent(request):
 					continue
 				if not request.segments:
@@ -201,6 +207,9 @@ class BackgroundController:
 							indexesAfter=segment.indexesAfter,
 							segmentNumber=segmentNumber,
 						)
+						if request.trace is not None:
+							request.trace.mark("firstPcmReceived")
+							result = replace(result, latencyTrace=request.trace)
 						if not self._isRequestCurrent(request) or not self._playResult(result):
 							break
 					for index in segment.indexesAfter:

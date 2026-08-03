@@ -1,5 +1,27 @@
 # Development Journal
 
+## 2026-08-03 — Portable validation harness
+
+Added development-only `tools/portableNvdaValidation` tooling for safe archive validation, disposable `D:\NVDA` config ownership, unrelated-process refusal, child-only environment setup, PID-scoped cleanup, and content-free reports. No approved NVDA Spy/global-plugin input adapter exists in the pinned material, so objective scenarios are explicitly blocked rather than simulated or falsely passed. The production archive remains unchanged.
+
+The restricted adapter protocol now adds per-run loopback authentication, exact command/fixture schemas, duplicate-ID and size limits, and a disposable global-plugin boundary. It intentionally returns an explicit unsupported result for UI fixture actions until the complete NVDA gesture/focus APIs are available in a verified source checkout; no arbitrary execution or false scenario pass was introduced.
+
+## 2026-08-02 — Production chunk streaming rollback
+
+Portable NVDA validation rejected the production incremental-chunk integration: perceived response was slower, typed characters were not spoken, document reading stopped, and navigation speech was not immediate. The preceding persistent warm full-request backend was materially better. Production stream frames, stream lifecycle states, and per-chunk `WavePlayer` feeding were reverted. Sonata/RT research and the excluded development prototype remain for reference; the runtime ADR remains Proposed.
+
+## 2026-08-02 — Production incremental Piper chunks
+
+The persistent local protocol now emits `streamStarted`, ordered bounded `pcmChunk`, `streamComplete`, and `streamFailed` frames. The worker retains one warm Piper voice/configuration and sends a content-free cancel frame rather than terminating the process for ordinary replacement. The background controller rejects stale chunks, feeds each current chunk immediately, calls `WavePlayer.idle()` once after segment completion, then dispatches indexes and final completion. A retained warm Lessac twelve-phrase request produced 12 ordered pipe chunks; first chunk arrival was approximately 114 ms and final arrival approximately 1,385 ms, compared with approximately 1.1–1.2 seconds before first full-buffer exposure. These remain worker/pipe metrics, not audible-onset claims. The runtime ADR remains Proposed.
+
+## 2026-08-02 — RT model and chunk-streaming experiment
+
+The official `en_US-lessac+RT-low` archive was inspected outside the project. Its encoder and decoder load successfully and expose a proven `z`/`y_mask` split, but Sonata publishes no public converter from a standard Piper ONNX graph. Public feasibility is therefore classified as not reproducible from an ONNX file alone. The approved standard Piper generator yields one chunk for short inputs but multiple sentence chunks for long inputs; the current production worker concatenates them before IPC. A development-only real-generator prototype now forwards each yield with generation checks and explicit environment activation. Warm tests measured first chunks around 62–109 ms for multi-sentence/long standard Piper input, while the direct RT encoder/decoder experiment produced three model chunks for navigation and first PCM around 183–242 ms. RT did not improve short first PCM and was not selected as the production backend. The runtime ADR remains Proposed.
+
+## 2026-08-02 — Sonata architecture review
+
+Primary-source review of the official Sonata NVDA and Rust repositories found a persistent server, long-lived `WavePlayer`, uncombined navigation strings, server-streamed PCM, and a separate `+RT` encoder/decoder voice variant. The gRPC protocol has no explicit generation or cancel RPC; dropping the stream stops delivery. RT output is model-chunk streaming, not frame streaming, and short one-shot requests can still yield one complete chunk. Cargo is unavailable and no official RT model is installed, so no real Sonata prototype measurement was fabricated. Research documents record the evidence and next development-only streaming experiment. The runtime ADR remains Proposed.
+
 ## 2026-07-30 — Repository foundation
 
 ### Context
@@ -184,3 +206,9 @@ Because Phase 2J intentionally discards indexes and advertises no index notifica
 ## 2026-08-02 — Persistent worker and real index boundaries
 
 Phase 2J was extended after portable evidence showed that completion could not advance Read All and CharacterMode was rejected. The selected development design is one non-daemon controller thread with one persistent child, one active request, and one replaceable pending request. Piper model loading now occurs once per session; framed segment requests preserve CharacterMode and IndexItem boundaries. The controller queues `synthIndexReached` after each segment's actual playback and queues final completion afterward. Cancellation invalidates the generation and terminates the child without waiting on the caller thread. Retained Lessac integration passed multiple warm requests and ordered callbacks; portable validation remains required. The runtime ADR remains Proposed.
+
+Phase 2K established a reproducible bridge baseline using the retained Lessac model and CPU runtime. Warm character, digit, punctuation, word, and control requests measured approximately 25–30 ms; a short navigation phrase measured approximately 39 ms; a short sentence measured approximately 79 ms. Fresh-worker startup remained approximately 2 seconds after model load, so cold latency is dominated by model initialization rather than framing. Piper yielded one complete chunk for each tested short, sentence, and long case; frame-level streaming was not claimed. The worker now performs a silent empty synthesis before readiness and reuses one `SynthesisConfig` for its lifetime. A bounded PCM cache and ONNX thread/affinity tuning were rejected because the benchmark did not prove broad benefit and would add settings/invalidation complexity. Phase 2K remains focused on latency and the runtime ADR remains Proposed.
+
+The hash-verified validation model and pinned local build environment were restored. A rerun measured one-shot short requests at approximately 2 seconds and persistent warm requests at approximately 24–51 ms; cancellation returned in under 1 ms, with a cold restart required after hard termination. The persistent bridge now detaches and asynchronously reaps a terminating process, eliminating the replacement race observed when a new request arrived before Windows updated `poll()`. Focused bridge/controller tests pass with ResourceWarnings treated as errors. The runtime ADR remains Proposed.
+
+Phase 2K follow-up investigation added bounded monotonic traces for speech entry/return, controller submission/start, first PCM receipt, first `WavePlayer.feed()`, and playback drain. The trace contains request/generation IDs and timestamps only. The available Piper generator produced one complete chunk per retained-model request, so no frame-streaming improvement was claimed. Input-hook and physical audio callback timestamps are not exposed safely by the current development boundary; portable correlation remains required.

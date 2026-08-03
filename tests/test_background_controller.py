@@ -56,7 +56,6 @@ class FakeBridge:
 			raise RuntimeBridgeCancelled()
 		return PcmResult(generationId, jobId, 16_000, 1, 2, b"\x01\x00")
 
-
 class ControllerTests(unittest.TestCase):
 	def _controller(self, bridge=None):
 		bridge = bridge or FakeBridge()

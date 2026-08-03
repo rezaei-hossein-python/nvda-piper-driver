@@ -45,12 +45,11 @@ def _loadVoice(model: Path, config: Path):
 		_fail("model load failed")
 
 
-def _synthesize(voice, text: str) -> tuple[bytes, int]:
+def _synthesize(voice, text: str, synConfig) -> tuple[bytes, int]:
 	try:
-		from piper import SynthesisConfig
 		parts: list[bytes] = []
 		total = 0
-		for chunk in voice.synthesize(text, syn_config=SynthesisConfig()):
+		for chunk in voice.synthesize(text, syn_config=synConfig):
 			audio = chunk.audio_int16_bytes
 			total += len(audio)
 			if total > MAX_PCM_BYTES:
@@ -62,6 +61,19 @@ def _synthesize(voice, text: str) -> tuple[bytes, int]:
 	except Exception:
 		_fail("synthesis failed")
 	return b"", 0
+
+
+def _warmVoice(voice, synConfig) -> None:
+	"""Initialize backend execution without producing user-visible audio."""
+	try:
+		# Piper accepts an empty synthesis request and yields no audio. This is
+		# deliberately language-neutral and warms phonemizer/ORT execution only.
+		for _ in voice.synthesize("", syn_config=synConfig):
+			_fail("warm-up produced audio")
+	except SystemExit:
+		raise
+	except Exception:
+		_fail("runtime warm-up failed")
 
 
 def _writePersistentFrame(header: dict[str, object], pcm: bytes = b"") -> None:
@@ -76,6 +88,12 @@ def _writePersistentFrame(header: dict[str, object], pcm: bytes = b"") -> None:
 
 def _persistentMain(model: Path, config: Path) -> int:
 	voice = _loadVoice(model, config)
+	try:
+		from piper import SynthesisConfig
+		synConfig = SynthesisConfig()
+	except Exception:
+		_fail("runtime initialization failed")
+	_warmVoice(voice, synConfig)
 	_writePersistentFrame({"type": "ready", "sampleRate": voice.config.sample_rate})
 	while True:
 		lengthBytes = _readExact(sys.stdin.buffer, _PERSISTENT_REQUEST_LENGTH.size)
@@ -103,22 +121,15 @@ def _persistentMain(model: Path, config: Path) -> int:
 			_fail("invalid request")
 		if any(type(index) is not int or not 0 <= index <= (1 << 63) - 1 for index in request["indexesAfter"]):
 			_fail("invalid request")
-		pcm, sampleRate = _synthesize(voice, request["text"])
-		if not pcm or len(pcm) % 2 or type(sampleRate) is not int:
-			_fail("invalid audio")
-		_writePersistentFrame(
-			{
-				"channels": 1,
-				"generationId": request["generationId"],
-				"jobId": request["jobId"],
-				"sampleRate": sampleRate,
-				"sampleWidth": 2,
-				"pcmBytes": len(pcm),
-				"segmentNumber": request["segmentNumber"],
-				"indexesAfter": request["indexesAfter"],
-			},
-			pcm,
-		)
+		try:
+			pcm, sampleRate = _synthesize(voice, request["text"], synConfig)
+			if not pcm or len(pcm) % 2 or type(sampleRate) is not int:
+				_fail("invalid audio")
+			_writePersistentFrame({"channels": 1, "generationId": request["generationId"], "jobId": request["jobId"], "sampleRate": sampleRate, "sampleWidth": 2, "pcmBytes": len(pcm), "segmentNumber": request["segmentNumber"], "indexesAfter": request["indexesAfter"]}, pcm)
+		except SystemExit:
+			raise
+		except Exception:
+			_fail("synthesis failed")
 
 
 def main() -> int:

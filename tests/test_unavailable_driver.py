@@ -168,6 +168,7 @@ class StubBackgroundRequest:
 	generationId: int
 	jobId: int
 	segments: tuple[object, ...]
+	trace: object | None = None
 
 	@property
 	def text(self) -> str:
@@ -305,6 +306,10 @@ def loadDriverModule() -> types.ModuleType:
 		"synthDrivers._nvdaPiperDriver.conversion": stubConversion,
 		"synthDrivers._nvdaPiperDriver.jobs": stubJobs,
 		"synthDrivers._nvdaPiperDriver.runtimeBridge": stubBridge,
+		"synthDrivers._nvdaPiperDriver.latencyMetrics": types.SimpleNamespace(
+			LatencyRecorder=lambda: types.SimpleNamespace(record=lambda trace: None),
+			LatencyTrace=type("LatencyTrace", (), {"__init__": lambda self, *args: None, "mark": lambda self, *args: None}),
+		),
 		MODULE_NAME: module,
 	}):
 		spec.loader.exec_module(module)

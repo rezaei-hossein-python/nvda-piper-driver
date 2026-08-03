@@ -4,6 +4,18 @@ All notable user-visible changes will be documented in this file.
 
 The project has not released a public version.
 
+### Sonata architecture research
+
+- Added primary-source Phase 2K documentation for Sonata NVDA/Rust architecture, RT voices, streaming, cancellation, licensing, and the deferred prototype decision. No Sonata binary or code is packaged.
+
+### RT model experiment
+
+- Added ignored-model graph analysis and a development-only, explicitly gated real Piper chunk-streaming prototype. The production backend remains unchanged.
+
+### Production chunk streaming rollback
+
+- Reverted the production chunk-streaming integration after portable NVDA validation showed slower perceived response, missing character echo, stopped document reading, and non-immediate navigation speech. The persistent warm full-request backend is restored; the streaming work remains documented as a rejected development experiment.
+
 ## Unreleased
 
 ### Added
@@ -35,5 +47,11 @@ The project has not released a public version.
 - Added source-backed Phase 2J eSpeak baseline, character/Read All compatibility policy, and Piper interactive-performance evidence. Read All remains blocked on required index callbacks; no fabricated index or hybrid output path was added.
 
 - Phase 2J now uses a persistent bounded child worker, real index-delimited segment callbacks, and isolated CharacterMode segments. The worker loads one configured model per session, supports one active plus one replaceable request, and uses bounded termination for cancellation; portable interaction validation remains pending.
+
+- Phase 2K measured persistent-worker latency, added a silent language-neutral startup warm-up, and reused one Piper synthesis configuration per worker. Warm short bridge requests measured approximately 25–30 ms; cold startup remained dominated by model loading. No cache, language-specific optimization, runtime packaging, or eSpeak fallback was added.
+
+- Phase 2K validation restored the approved local model and build tools. Persistent cancellation now detaches and reaps the terminating worker asynchronously so replacement cannot race a stale process; hard cancellation still requires a cold model reload.
+
+- Phase 2K added bounded content-free monotonic latency traces through first `WavePlayer.feed()` and playback drain. These traces make worker-to-audio-device boundaries measurable without retaining speech text; physical audible onset still requires portable validation.
 
 The driver remains unavailable in normal use. Phase 2J replaces Phase 2I's blocking call with bounded background execution around one-shot Piper children. It retains only one replaceable pending request, stops stale playback, and rechecks completion on NVDA's event queue. Text plus index/language metadata now crosses the extraction boundary; metadata is ignored, no index or language notification exists, and renewed portable validation remains pending. Active ONNX inference still has no cancellation token; termination is the fallback. There is no broader command support, pause/resume, automatic model/voice switching, model discovery, language-specific behavior, or bundled runtime/model asset. The package is not a public release.

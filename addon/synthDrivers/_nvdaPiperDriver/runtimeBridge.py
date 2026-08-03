@@ -46,6 +46,7 @@ class PcmResult:
 	channels: int
 	sampleWidth: int
 	pcm: bytes
+	latencyTrace: object | None = None
 
 
 def _requireFile(value: object, suffix: str, label: str) -> Path:
@@ -215,6 +216,7 @@ class OneShotRuntimeBridge:
 		with self._processLock:
 			self._cancellationToken += 1
 			process = self._process
+			self._restartCount = 0
 		if process is None or process.poll() is not None:
 			return
 		try:
@@ -366,6 +368,24 @@ class PersistentRuntimeBridge:
 			except (OSError, subprocess.TimeoutExpired):
 				pass
 
+	@staticmethod
+	def _reapDetachedProcess(process: subprocess.Popen[bytes]) -> None:
+		"""Reap an asynchronously terminated replacement process off-thread."""
+		try:
+			process.wait(timeout=5)
+		except (OSError, subprocess.TimeoutExpired):
+			try:
+				process.kill()
+				process.wait(timeout=5)
+			except (OSError, subprocess.TimeoutExpired):
+				pass
+		for stream in (process.stdin, process.stdout, process.stderr):
+			if stream is not None:
+				try:
+					stream.close()
+				except OSError:
+					pass
+
 	def _discardProcess(self, process: subprocess.Popen[bytes]) -> None:
 		with self._processLock:
 			if self._process is process:
@@ -436,9 +456,6 @@ class PersistentRuntimeBridge:
 		with self._processLock:
 			self._cancellationToken += 1
 			process = self._process
-			# A live process interrupted for NVDA replacement is an expected
-			# cancellation, not a failed startup. Do not let rapid character or
-			# navigation replacement consume the crash-restart budget.
 			if process is not None and process.poll() is None:
 				self._restartCount = 0
 		if process is not None and process.poll() is None:

@@ -18,6 +18,7 @@ EXPECTED_ARCHIVE_FILES = {
 	"synthDrivers/_nvdaPiperDriver/conversion.py",
 	"synthDrivers/_nvdaPiperDriver/fakeWorker.py",
 	"synthDrivers/_nvdaPiperDriver/jobs.py",
+	"synthDrivers/_nvdaPiperDriver/latencyMetrics.py",
 	"synthDrivers/_nvdaPiperDriver/protocol.py",
 	"synthDrivers/_nvdaPiperDriver/runtimeBridge.py",
 	"synthDrivers/_nvdaPiperDriver/runtimeWorker.py",

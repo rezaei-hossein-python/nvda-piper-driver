@@ -77,3 +77,6 @@ Pure, fake-worker/audio, serialization, metadata, and most standalone runtime te
 ## Exit evidence
 
 Every milestone records commands, versions, machine profile, result artifacts that contain no private text/audio, known flakes, and unresolved failures in the development journal. Performance claims require a reproducible harness committed only when implementation begins.
+## Complete NVDA source and disposable validation
+
+The authoritative NVDA reference is pinned in `references/nvda-source-lock.json` and recreated by `tools/bootstrapNvdaReference.ps1`. NVDA's official `tests/system` infrastructure, including `NvdaLib.py` and `SystemTestSpy/speechSpyGlobalPlugin.py`, is the source for future keyboard/speech automation. The project adapter remains narrower: it uses authenticated fixed schemas and must not become a generic remote-control or code-execution channel. Real fixture automation is enabled only after the verified NVDA system-test bridge is available.
