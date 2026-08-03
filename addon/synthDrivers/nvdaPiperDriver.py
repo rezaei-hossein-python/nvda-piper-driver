@@ -3,10 +3,13 @@
 # This file is covered by the GNU General Public License v2 or later.
 # See LICENSE for details.
 
+from __future__ import annotations
+
 from collections import OrderedDict
 from enum import Enum
 import os
 from pathlib import Path
+import hashlib
 import threading
 import time
 
@@ -40,6 +43,14 @@ from synthDrivers._nvdaPiperDriver.jobs import (
 )
 from synthDrivers._nvdaPiperDriver.runtimeBridge import PersistentRuntimeBridge, readModelLanguage, validateRuntimePaths
 from synthDrivers._nvdaPiperDriver.latencyMetrics import LatencyRecorder, LatencyTrace
+try:
+	from synthDrivers._nvdaPiperDriver.runtimeBridge import PcmResult
+except ImportError:  # pragma: no cover - narrow NVDA-facing test stubs omit the value type.
+	PcmResult = None  # type: ignore[assignment,misc]
+try:
+	from synthDrivers._nvdaPiperDriver.shortSpeechCache import CacheKey, CachedPcm, ShortSpeechCache, trimConservative
+except ImportError:  # pragma: no cover - isolated NVDA API stubs omit the package.
+	CacheKey = CachedPcm = ShortSpeechCache = trimConservative = None  # type: ignore[assignment,misc]
 
 _TEST_ONLY_MARKER_ENV = "NVDA_PIPER_DRIVER_TEST_ONLY_MOCK_RUNTIME"
 _TEST_ONLY_MARKER_VALUE = "phase-2c-explicit-local-mock-runtime-6f4d1c8a"
@@ -49,6 +60,18 @@ _CONFIG_PATH_ENV = "NVDA_PIPER_CONFIG_PATH"
 _LATENCY_TRACE_ENV = "NVDA_PIPER_LATENCY_TRACE"
 _MOCK_VOICE_ID = "configuredModel"
 _DEFAULT_RATE = 50
+_SHORT_SPEECH_ENV = "NVDA_PIPER_EXPERIMENTAL_SHORT_SPEECH"
+_CACHE_ENV = "NVDA_PIPER_EXPERIMENTAL_CACHE"
+
+
+def _normalUserContext() -> bool:
+	"""Use NVDA's authoritative secure flag when running inside NVDA."""
+	try:
+		import globalVars
+		secure = bool(getattr(getattr(globalVars, "appArgs", None), "secure", True))
+		return not secure
+	except ImportError:
+		return False
 
 
 class _SpeechExtractionError(RuntimeError):
@@ -113,12 +136,17 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 			os.environ[_CONFIG_PATH_ENV],
 			str(workerPath),
 		)
+		self._shortSpeechEnabled = os.environ.get(_SHORT_SPEECH_ENV) == "1"
+		self._cache: ShortSpeechCache | None = None
+		self._cacheWorkerId: int | None = None
+		if self._shortSpeechEnabled and os.environ.get(_CACHE_ENV) == "1" and os.environ.get("NVDA_SECURE_MODE") != "1" and _normalUserContext() and ShortSpeechCache is not None:
+			self._cache = ShortSpeechCache()
 		self._player: nvwave.WavePlayer | None = None
 		self._audioLock = threading.Lock()
 		self._speechRejectionReported = False
 		self._latencyRecorder = LatencyRecorder()
 		super().__init__()
-		self._controller = BackgroundController(
+		controllerArgs = (
 			self._runtimeBridge,
 			self._playResult,
 			lambda callback: queueHandler.queueFunction(queueHandler.eventQueue, callback),
@@ -126,6 +154,9 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 			lambda index: synthDriverHandler.synthIndexReached.notify(synth=self, index=index),
 			self._reportBackgroundError,
 		)
+		if self._cache is not None:
+			controllerArgs += (self._cacheGet, self._cachePut)
+		self._controller = BackgroundController(*controllerArgs)
 		self._state = _MockLifecycleState.READY
 
 	def _reportBackgroundError(self, code: str) -> None:
@@ -151,6 +182,7 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		if value != _MOCK_VOICE_ID:
 			raise LookupError(value)
 		self._voice = value
+		self._invalidateCache("voice")
 
 	def _get_rate(self) -> int:
 		self._requireReady()
@@ -163,6 +195,63 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		if not 0 <= value <= 100:
 			raise ValueError("rate must be between 0 and 100")
 		self._rate = value
+		self._invalidateCache("rate")
+
+	def _invalidateCache(self, reason: str) -> None:
+		if self._cache is not None:
+			self._cache.invalidate(reason)
+		self._cacheWorkerId = None
+
+	@staticmethod
+	def _identity(path: str) -> str:
+		try:
+			stat = Path(path).stat()
+			value = f"{stat.st_size}:{stat.st_mtime_ns}"
+		except OSError:
+			value = "missing"
+		return hashlib.sha256(value.encode("ascii")).hexdigest()
+
+	def _cacheKey(self, segment: SynthesisSegment, result: PcmResult | None = None) -> CacheKey:
+		return CacheKey(
+			segment.text,
+			segment.characterMode,
+			self._identity(os.environ[_MODEL_PATH_ENV]),
+			self._identity(os.environ[_CONFIG_PATH_ENV]),
+			self._voice,
+			self._rate,
+			0,
+			100,
+			0.667,
+			1.0,
+			result.sampleRate if result is not None else 16_000,
+			result.channels if result is not None else 1,
+			result.sampleWidth if result is not None else 2,
+			"python-piper-onnxruntime",
+		)
+
+	def _cacheGet(self, segment: SynthesisSegment, generationId: int) -> PcmResult | None:
+		if PcmResult is None or self._cache is None or not segment.characterMode or not segment.text or len(segment.text) > 64:
+			return None
+		workerId = self._runtimeBridge.processId
+		if self._cacheWorkerId is not None and workerId != self._cacheWorkerId:
+			self._invalidateCache("workerRestart")
+		value = self._cache.get(self._cacheKey(segment))
+		if value is None:
+			return None
+		return PcmResult(generationId, 0, value.sampleRate, value.channels, value.sampleWidth, value.pcm)
+
+	def _cachePut(self, segment: SynthesisSegment, result: PcmResult) -> None:
+		if self._cache is None or not segment.characterMode or not segment.text or len(segment.text) > 64:
+			return
+		self._cacheWorkerId = self._runtimeBridge.processId
+		pcm = result.pcm
+		if os.environ.get("NVDA_PIPER_EXPERIMENTAL_CHARACTER_TRIM") == "1" and trimConservative is not None:
+			pcm = trimConservative(pcm)
+		frameSize = result.channels * result.sampleWidth
+		if frameSize <= 0:
+			return
+		value = CachedPcm(pcm, len(pcm) // frameSize, result.sampleRate, result.channels, result.sampleWidth, result.generationId, len(pcm))
+		self._cache.put(self._cacheKey(segment, result), value)
 
 	def _createSpeechJob(self, speechSequence: list[object]) -> SpeechJob:
 		"""Convert one sequence without retaining it or submitting it for execution."""
@@ -227,6 +316,7 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		if self._state is _MockLifecycleState.TERMINATED:
 			return
 		try:
+			self._invalidateCache("terminate")
 			self.cancel()
 			if not self._controller.shutdown():
 				self._reportBackgroundError("shutdownTimeout")
@@ -257,11 +347,18 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		self._speechRejectionReported = False
 		trace = LatencyTrace(job.jobId, job.generationId)
 		trace.mark("speakEntry", entryNs)
-		if getattr(self._controller, "active", False):
+		category = "ordered"
+		if len(segments) == 1 and len(segments[0].text) <= 64:
+			category = "character" if segments[0].characterMode else "navigation"
+		if category != "character" and getattr(self._controller, "active", False):
 			with self._audioLock:
 				if self._player is not None:
 					self._player.stop()
-		self._controller.submit(BackgroundRequest(job.generationId, job.jobId, segments, trace))
+		try:
+			request = BackgroundRequest(job.generationId, job.jobId, segments, trace, category)
+		except TypeError:  # pragma: no cover - compatibility with narrow NVDA-facing stubs.
+			request = BackgroundRequest(job.generationId, job.jobId, segments, trace)
+		self._controller.submit(request)
 		trace.mark("speakReturn")
 
 	def _completeRejectedIndexes(self, speechSequence: object) -> None:
@@ -324,6 +421,7 @@ class SynthDriver(synthDriverHandler.SynthDriver):
 		if self._state is _MockLifecycleState.TERMINATED:
 			return
 		self._controller.cancel()
+		# Cancellation invalidates only playback; cached entries remain reusable.
 		with self._audioLock:
 			if self._player is not None:
 				self._player.stop()

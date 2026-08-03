@@ -1,5 +1,38 @@
 # Development Journal
 
+## 2026-08-03 — Short-speech cache experiment
+
+Added a development-only character-mode PCM cache behind two explicit
+environment gates. It is lazy, memory-only, bounded, language-neutral, and
+uses the existing warm worker/controller and `WavePlayer` path on misses and
+hits. Portable A/B validation is still required; no production recommendation
+or physical audible-onset claim is made.
+
+## 2026-08-03 — Character event fidelity experiment
+
+The cache exposed a scheduling limitation: one replaceable pending request and
+unconditional player stop are unsuitable for repeated character echo. An
+opt-in eight-entry character FIFO now preserves distinct accepted events,
+while navigation and ordered speech retain their prior replacement and
+ordering contracts. Portable A/B validation is required before acceptance.
+
+## 2026-08-03 — Cancellation pipe-race classification
+
+Package C's portable log showed four workerCrash messages. Source tracing found
+that `interrupt()` terminated the child while `synthesize()` was blocked in
+`_readFrame`; the closed pipe was reported as workerCrash before the
+cancellation token check. The bridge now classifies that token-changing race
+as cancellation while preserving genuine unchanged-token worker failures.
+Portable revalidation is required before milestone acceptance.
+
+## 2026-08-03 — Audio-only diagnostic and waveform guard
+
+Added an excluded diagnostic for direct versus stop-before-feed PCM behavior
+and content-free waveform analysis. A Lessac character fixture showed roughly
+half-second duration with no exact-zero margins but low-energy edge runs. The
+trim prototype therefore retains original PCM when a candidate would remove
+more than half the waveform. WASAPI loopback and physical onset remain pending.
+
 ## 2026-08-03 — Portable validation harness
 
 Added development-only `tools/portableNvdaValidation` tooling for safe archive validation, disposable `D:\NVDA` config ownership, unrelated-process refusal, child-only environment setup, PID-scoped cleanup, and content-free reports. No approved NVDA Spy/global-plugin input adapter exists in the pinned material, so objective scenarios are explicitly blocked rather than simulated or falsely passed. The production archive remains unchanged.

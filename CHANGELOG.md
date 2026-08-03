@@ -18,6 +18,18 @@ The project has not released a public version.
 
 ## Unreleased
 
+### Phase 2L experiment
+
+- Added an explicitly gated, bounded selected-voice character PCM cache and
+  conservative short-unit classification. The Phase 2K control path remains
+  unchanged unless both experimental environment variables are enabled.
+- Added a development-only category scheduler: accepted character events use a
+  bounded FIFO while navigation/focus remains newest-wins and ordered speech
+  remains unchanged.
+- Added an excluded audio-only diagnostic and conservative, opt-in character
+  waveform analysis/trim prototype. No acceleration dependency or audible-onset
+  claim is included.
+
 ### Added
 
 - Initial repository structure.

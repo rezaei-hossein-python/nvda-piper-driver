@@ -179,6 +179,53 @@ class ControllerTests(unittest.TestCase):
 		self.assertEqual(ControllerState.READY, controller.state)
 		self.assertTrue(controller.shutdown())
 
+	def test_optional_cache_hit_bypasses_worker(self) -> None:
+		bridge = FakeBridge()
+		played = []
+		cached = PcmResult(1, 0, 16_000, 1, 2, b"\x01\x00")
+		controller = BackgroundController(
+			bridge,
+			lambda result: played.append(result.generationId) or True,
+			lambda callback: callback(),
+			lambda: None,
+			lambda index: None,
+			lambda code: self.fail(code),
+			lambda segment, generation: cached if segment.characterMode else None,
+			lambda segment, result: self.fail("cache put on hit"),
+		)
+		controller.submit(BackgroundRequest(1, 1, (SynthesisSegment("x", characterMode=True),)))
+		for _ in range(100):
+			if played:
+				break
+			time.sleep(0.01)
+		self.assertEqual([1], played)
+		self.assertEqual([], bridge.texts)
+		self.assertTrue(controller.shutdown())
+
+	def test_character_fifo_preserves_identical_events(self) -> None:
+		bridge = FakeBridge()
+		played = []
+		dispatched = []
+		controller = BackgroundController(
+			bridge,
+			lambda result: played.append(result.generationId) or True,
+			dispatched.append,
+			lambda: None,
+			lambda index: None,
+			lambda code: self.fail(code),
+		)
+		for generation in (1, 2, 3):
+			controller.submit(BackgroundRequest(generation, generation, (SynthesisSegment("x", True),), category="character"))
+		bridge.release.set()
+		for _ in range(200):
+			for callback in list(dispatched):
+				callback()
+			if played == [1, 2, 3]:
+				break
+			time.sleep(0.005)
+		self.assertEqual([1, 2, 3], played)
+		self.assertTrue(controller.shutdown())
+
 	def test_retained_runtime_loads_and_synthesizes_in_background(self) -> None:
 		runtime = os.environ.get("NVDA_PIPER_RUNTIME_PYTHON")
 		model = os.environ.get("NVDA_PIPER_MODEL_PATH")

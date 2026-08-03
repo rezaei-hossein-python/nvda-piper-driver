@@ -432,9 +432,15 @@ class PersistentRuntimeBridge:
 			header = self._readFrame(process)
 		except RuntimeBridgeError:
 			self._discardProcess(process)
+			# Terminating the child is the cooperative cancellation mechanism. A
+			# closed pipe in this race is cancellation, not a worker failure.
+			if token != self.cancellationToken:
+				raise RuntimeBridgeCancelled()
 			raise
 		except (BrokenPipeError, OSError) as error:
 			self._discardProcess(process)
+			if token != self.cancellationToken:
+				raise RuntimeBridgeCancelled() from error
 			raise _error("workerCrash", "the development worker failed") from error
 		if token != self.cancellationToken:
 			raise RuntimeBridgeCancelled()
