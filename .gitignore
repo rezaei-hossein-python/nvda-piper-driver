@@ -5,6 +5,8 @@ __pycache__/
 .venv/
 .phase2h-runtime/
 .phase2h-assets/
+.phase2r-capture/
+.phase2r-fixtures/
 .phase2h-output/
 venv/
 build/
@@ -18,6 +20,7 @@ addon/doc/*/*.html
 .ruff_cache/
 *.log
 *.wav
+validation-results/
 *.onnx
 *.onnx.json
 models/

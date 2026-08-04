@@ -65,9 +65,7 @@ The project was created to investigate a maintained NVDA synthesizer driver for 
 
 Development is not tied to one primary computer. GitHub will serve as the source of truth so work can continue across two Windows laptops.
 
-Current local project path on this laptop:
-
-`C:\projects\nvda piper addon`
+Current local project path is intentionally omitted from shareable research.
 
 Planned GitHub repository name:
 
